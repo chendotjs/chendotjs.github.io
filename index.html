@@ -1,0 +1,1243 @@
+
+ <!DOCTYPE HTML>
+<html >
+<head>
+  <meta charset="UTF-8">
+  
+    <title>修竹幽晴堂</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="chendotjs">
+    
+
+    
+    <meta property="og:type" content="website">
+<meta property="og:title" content="修竹幽晴堂">
+<meta property="og:url" content="https://chendotjs.me/index.html">
+<meta property="og:site_name" content="修竹幽晴堂">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="修竹幽晴堂">
+
+    
+    <link rel="alternative" href="/atom.xml" title="修竹幽晴堂" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/cman.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/cman.png">
+    
+    <link rel="stylesheet" href="/css/style.css">
+    <link href='https://cdn.webfont.youziku.com/webfonts/nomal/107517/46953/59ac0d56f629d80bf07d56a1.css' rel='stylesheet' type='text/css' />
+    <link href='https://fonts.font.im/css?family=Marck+Script' rel='stylesheet' type='text/css'>
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/cman.png" alt="修竹幽晴堂" title="修竹幽晴堂"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name" style="font-family:yuweifced3d62f61a3fd"><a href="/" title="修竹幽晴堂">修竹幽晴堂</a></h1>
+				<h2 class="blog-motto" style="font-family: 'Marck Script', cursive;">Done is better than perfect!</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
+						<input type="hidden" name="q" value="site:chendotjs.me">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main">
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/11/23/Jenkins配合Docker搭建CI服务/" title="Jenkins配合Docker搭建CI服务" itemprop="url">Jenkins配合Docker搭建CI服务</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="chendotjs" target="_blank" itemprop="author">chendotjs</a>
+		
+  <p class="article-time">
+    <time datetime="2017-11-23T14:47:18.000Z" itemprop="datePublished"> Published 2017-11-23</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h2 id="引子"><a href="#引子" class="headerlink" title="引子"></a>引子</h2><p>之前一直在用实验室延续下来的C++框架，因为没有测试用例以及足够的文档，开发起来苦不堪言（可能是我太弱鸡），当然这也不能怪之前的师兄，从无到有的过程本身就是一个飞跃。</p>
+<p>从痛苦中反思，一定要有一个相对规范的流程，把软件开发这个流程自动化、正规化。正好有个新项目，老板让我负责整体的方案设计以及开发实现。开发团队很小，也就三四个人，足够“敏捷”。磨刀不误砍柴工，不急着上来就编码，我坚持先把流程定好，培养规范的意识，不坑自己也少给后人挖坑。</p>
+<p>我自己也是摸着石头过河，根据以往的经验一步一步摸索，特此打算将开发的一些过程、心得记录下来，本文为第一篇。</p>
+<h2 id="持续集成（CI）服务"><a href="#持续集成（CI）服务" class="headerlink" title="持续集成（CI）服务"></a>持续集成（CI）服务</h2><p>我们的项目采用<a href="https://jenkins.io/" target="_blank" rel="external">Jenkins</a>配合<a href="https://www.docker.com/" target="_blank" rel="external">Docker</a>的方式进行持续集成。其中，Jenkins负责在代码仓库有新的提交之后，调用构建脚本，启动Docker；Docker负责启动一个干净的虚拟容器，检查代码在该容器中能否通过所有测试。</p>
+<p>总得来说，大致的流程图如下：</p>
+<p><img src="/2017/11/23/Jenkins配合Docker搭建CI服务/jenkins-docker.png" alt=""></p>
+<p>为了进行高质量的持续集成，需要熟练掌握shell/python脚本、单元测试的编写以及Dockerfile的编写。</p>
+<h2 id="Jenkins"><a href="#Jenkins" class="headerlink" title="Jenkins"></a>Jenkins</h2><h3 id="0x01-简介"><a href="#0x01-简介" class="headerlink" title="0x01 简介"></a>0x01 简介</h3><p>Jenkins是一个用Java编写的开源的持续集成工具。Jenkins可以帮你构建一个自动化的持续集成环境，你可以使用它来“自动化”编译、打包、分发部署你的应用，它兼容ant、maven、gradle等多种第三方构建工具，同时跟svn、git能无缝集成，也支持直接与知名源代码托管网站，比如github、bitbucket直接集成。</p>
+<h3 id="0x02-安装"><a href="#0x02-安装" class="headerlink" title="0x02 安装"></a>0x02 安装</h3><p>从Jenkins<a href="https://jenkins.io/" target="_blank" rel="external">官方网站</a>下载最新的war包。虽然Jenkins提供了Windows、Linux、OS X等各种安装程序，但是，从简洁易用的角度而言，这些安装程序都没有war包好使。启动Jenkins只需要运行命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">java -jar jenkins.war</div></pre></td></tr></table></figure>
+<p>目前我们采用的是<code>Jenkins 2.73.3 LTS</code>版本，使用<code>Java8</code>作为运行环境。</p>
+<h3 id="0x03-简单使用"><a href="#0x03-简单使用" class="headerlink" title="0x03 简单使用"></a>0x03 简单使用</h3><p>在新建一个项目之后，一般选择 <strong> 构建一个自由风格的软件项目 </strong> 。</p>
+<p><strong> 有几个关键栏目需要说明一下： </strong></p>
+<h5 id="1-源码管理"><a href="#1-源码管理" class="headerlink" title="1.源码管理"></a>1.源码管理</h5><p>通过输入项目的URL地址可以导入项目，我们一般使用git进行版本管理。<code>Jenkins</code>需要访问代码仓库的权限，并且提供了如下方法获取权限：</p>
+<ul>
+<li>Username with password</li>
+<li>Docker Host Certificate Authentication</li>
+<li>SSH Username with private key</li>
+<li>Secret file</li>
+<li>Secret text</li>
+<li>Certificate</li>
+</ul>
+<p>由于我们的gogs只支持基于http的git协议，所以一般直接使用 <strong> Username with password </strong> 方式访问仓库源代码。</p>
+<h5 id="2-构建触发器"><a href="#2-构建触发器" class="headerlink" title="2.构建触发器"></a>2.构建触发器</h5><p>该选项决定了何时来构建我们的项目。我们一般使用 <strong> 触发远程构建 (例如,使用脚本) </strong> ，通过git的<code>post-commit hook</code>或者gogs提供的<code>webhook</code>通知Jenkins立即构建，具体的命令类似这样 <code>curl --user USERNAME:PASS -s http://JENKINS_URL/job/PROJECTNAME/build?token=TOKEN_NAME</code>。</p>
+<p>另一种方式也可以选择 <strong> Build periodically </strong> ，但是显然没有提交代码后进行构建来得灵活直观。</p>
+<h5 id="3-构建环境"><a href="#3-构建环境" class="headerlink" title="3.构建环境"></a>3.构建环境</h5><p>建议勾选 <strong> Delete workspace before build starts </strong> ，以便让Jenkins可以彻底重新构建项目。</p>
+<h5 id="4-构建"><a href="#4-构建" class="headerlink" title="4.构建"></a>4.构建</h5><p>最重要的一步，决定了如何构建项目。根据需求，我们一般选择 <strong> Execute shell </strong> 。构建的脚本可以是Makefile或者shell脚本甚至是python脚本，只要保证shell最后的返回值为0，Jenkins就认为成功构建。</p>
+<h3 id="0x04-Jenkins的不足"><a href="#0x04-Jenkins的不足" class="headerlink" title="0x04 Jenkins的不足"></a>0x04 Jenkins的不足</h3><p>上节介绍了Jenkins的简单使用，看起来简单易用，但是有很多缺陷。所有的构建操作都是以宿主机为上下文环境，无法应对更灵活的需求，比如：</p>
+<ul>
+<li>c++项目如何确保在clang、gcc-7、gcc-5等编译器下都能编译通过</li>
+<li>如何确保python/node.js项目在不同版本下都能正确运行</li>
+<li>如何在数据库中mock数据</li>
+</ul>
+<p>诚然可以通过安装多种工具链以及修改构建脚本来满足以上需求，但无疑会大大增加脚本编写的复杂度以及测试的难度。所以需要配合<code>docker</code>的虚拟化技术来为Jenkins增加灵活性。</p>
+<h2 id="Docker"><a href="#Docker" class="headerlink" title="Docker"></a>Docker</h2><h2 id="0x01-简介-安装-入门"><a href="#0x01-简介-安装-入门" class="headerlink" title="0x01 简介 安装 入门"></a>0x01 简介 安装 入门</h2><p>《<a href="https://yeasy.gitbooks.io/docker_practice/content/" target="_blank" rel="external">Docker — 从入门到实践</a> 》一文已经写得很详尽透彻。</p>
+<h2 id="0x02-实践"><a href="#0x02-实践" class="headerlink" title="0x02 实践"></a>0x02 实践</h2><p>docker讲究分层。目前我的做法比较简单，自底向上总共分为三层:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">分层方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">单个项目</td>
+</tr>
+<tr>
+<td style="text-align:center">依赖软件包、开发工具链</td>
+</tr>
+<tr>
+<td style="text-align:center">操作系统（base/archlinux）</td>
+</tr>
+</tbody>
+</table>
+<p>对于不同项目，只需基于第二层重新构建image。虽然镜像管理起来稍微省事，这样也会带来第二层比较臃肿的问题。</p>
+<p>具体的层次可以拆分得更细，还有待在实践中去优化。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://jenkins.io/doc/" target="_blank" rel="external">Jenkins官方文档</a></p>
+<p><a href="http://mainframer.github.io/articles/Python%E6%8C%81%E7%BB%AD%E9%9B%86%E6%88%90.html" target="_blank" rel="external">Python在Jenkins上的持续集成–nose单元测试，代码覆盖率以及pylint代码质量审查</a></p>
+<p><a href="http://blog.csdn.net/a464057216/article/details/52934077" target="_blank" rel="external">Python项目在Jenkins中的自动化测试实践</a></p>
+<p><a href="https://github.com/qt/qtqa/tree/master/scripts/jenkins" target="_blank" rel="external">qt在Jenkins上的集成实践</a></p>
+<p><a href="https://stackoverflow.com/questions/12794568/how-to-configure-git-post-commit-hook" target="_blank" rel="external">How to configure Git post commit hook For Jenkins</a></p>
+<p><a href="http://www.dockerinfo.net/2457.html" target="_blank" rel="external">从零开始搭建Jenkins+Docker自动化集成环境</a></p>
+<p><a href="https://handsomeliuyang.github.io/2017/07/14/Docker-Jenkins%E6%9C%8D%E5%8A%A1%E6%90%AD%E5%BB%BA/" target="_blank" rel="external">Docker-Jenkins服务搭建</a></p>
+<p><a href="http://www.cnblogs.com/alexkn/p/4314143.html" target="_blank" rel="external">从零开始使用Jenkins来构建Docker容器(Ubuntu 14.04)</a></p>
+<p><a href="https://yeasy.gitbooks.io/docker_practice/content/" target="_blank" rel="external">Docker — 从入门到实践</a></p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Docker/">Docker</a><a href="/tags/CI，-DevOps/">CI， DevOps</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2017/11/23/Jenkins配合Docker搭建CI服务/#disqus_thread" class="comments-count-link">Comments</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/10/28/阶乘的整除问题/" title="阶乘的整除问题" itemprop="url">阶乘的整除问题</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="chendotjs" target="_blank" itemprop="author">chendotjs</a>
+		
+  <p class="article-time">
+    <time datetime="2017-10-28T06:37:08.000Z" itemprop="datePublished"> Published 2017-10-28</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h1 id="题目"><a href="#题目" class="headerlink" title="题目"></a>题目</h1><p>今天遇到一个有(ji)趣(chu)的问题，给定一个整数n(2&lt;=n&lt;= 1000)和一个质数a(2&lt;=a &lt;=1000)，求最大的k， 使得 a^k 可以整除 n!。</p>
+<h1 id="思路1"><a href="#思路1" class="headerlink" title="思路1"></a>思路1</h1><p>因为<code>n!</code>可能非常大，连<code>long long int</code>类型都无法存储，只能按着<code>n！</code>的形式对<code>1,2,3...n-1,n</code>这个序列分别求包含了多少<code>a</code>，然后进行累加，这是最直接的思路了。</p>
+<p>为了偷懒，我把这个方法写成递归形式了，效率肯定比不上循环的形式。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">#include &lt;stdio.h&gt;</div><div class="line"></div><div class="line">int solution(int n, int a);</div><div class="line"></div><div class="line">int main(int argc, char const *argv[]) &#123;</div><div class="line">  int n, a;</div><div class="line">  while (scanf(&quot;%d%d&quot;, &amp;n, &amp;a) != EOF) &#123;</div><div class="line">    printf(&quot;solution:%d\n&quot;, solution(n, a));</div><div class="line">  &#125;</div><div class="line">  return 0;</div><div class="line">&#125;</div><div class="line"></div><div class="line">int solution(int n, int a) &#123;</div><div class="line">  if (n == 1)</div><div class="line">    return 0;</div><div class="line">  int nCnt = 0, nn = n;</div><div class="line">  while (n % a == 0) &#123;</div><div class="line">    n = n / a;</div><div class="line">    nCnt++;</div><div class="line">  &#125;</div><div class="line">  return nCnt + solution(nn - 1, a);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>因为这个方法要做<code>n - 1</code>次循环，所以时间复杂度至少是<code>O(n)</code>。</p>
+<h1 id="思路2"><a href="#思路2" class="headerlink" title="思路2"></a>思路2</h1><p><code>n!中</code>包含了1到<code>n</code>区间内所有整数的乘积,考虑到阶乘的形式<code>1*2*3*4*...*(n-1)*n</code>，这些乘积中每一个<code>a</code>的倍数(包括其本身)都将对 <code>n!</code>贡献至少一个<code>a</code>因子，能提供的质因数的数字也就是<code>a,2a,3a,...a*a,a*a+a,...a*a*a...</code>。</p>
+<p>我们知道在1到<code>n</code>中<code>a</code>的倍数共有 <code>n/a</code>(整数除法)个，则<code>a</code>的因子数至少为 <code>n/a</code> 个,即有 <code>n/a</code> 个整数至少贡献了一个 <code>a</code> 因子。那么有多少个整数将贡献至少两个 <code>a</code> 因子呢，有了以上的分析读者应该知道所有 <code>a*a</code> 的倍数将为 <code>n!</code> 贡献至少 2 个 <code>a</code> 因子,且这样的整数有 <code>n/(a*a)</code>;同理 <code>a*a*a</code> 的倍数将贡献至少 3 个,这样的数有<code>n/(a*a*a)</code>; <code>a</code> 的四次方的倍数将贡献至少 4 个,这样的数有<code>(n/(a*a*a*a))</code>。</p>
+<p>这样可以得到算法步骤：</p>
+<ol>
+<li><p>计算器清零,该计数器表示 <code>n!</code>中将有几个 <code>a</code> 因子,即 <code>n!</code>分解质因数后<br>素因子 <code>a</code> 对应的幂指数。</p>
+</li>
+<li><p>计算 <code>n/a</code>,有 <code>n/a</code> 个整数可以向 n!提供一个 <code>a</code> 因子,则计数器累加 <code>n/a</code>。若<br><code>n/a</code>为 0,表示没有一个整数能向 <code>n!</code>提供一个或一个以上的 <code>a</code> 因子,分解结束。</p>
+</li>
+<li><p>计算<code>n/(a*a)</code>,有 <code>n/(a*a)</code>个整数可以向 <code>n!</code>提供两个<code>a</code> 因子,但它们在<br>之前步骤中(<code>a</code>的倍数必包括 <code>a*a</code> 的倍数)每个数都已经向计数器累加了 1 个 <code>a</code><br>因子,所以此处他们还能够向计数器贡献 <code>n/(a*a)</code>个素因子(即每个再贡献一<br>个),累加器累加 <code>n/ (a*a)</code>。若 <code>n/(a*a)</code>为 0,表示没有一个整数能向 <code>n!</code>提供<br>两个或两个以上的 <code>a</code>因子,分解结束。</p>
+</li>
+<li><p>计算 <code>n/ (a*a*a)</code>,有 <code>n/ (a*a*a)</code>个整数可以向 <code>n!</code>提供三个 <code>a</code> 因子,但它<br>们在之前步骤中(<code>a</code>和 <code>a*a</code> 的倍数必包括 <code>a*a*a</code> 的倍数)每个数都已经计算向计<br>数器累加了 2 个 a 因子,所以此处他们还能够向计数器贡献 <code>n/(a*a*a)</code>个素因<br>子,累加器累加 <code>n/ (a*a*a)</code>。若 <code>n/ (a*a*a)</code>为 0,表示没有一个整数能向 <code>n!</code>提<br>供三个或三个以上的 <code>a</code> 因子,分解结束。</p>
+</li>
+<li><p>依次累加 <code>a</code> 的更高次的倍数能够再提供的素因子数,即每次向计数器累加<br><code>n/(a^k)</code>,直到 <code>n/(a^k)</code>变为 0, 表示没有整数能提供更多的 <code>a</code> 因子,关于 <code>a</code> 的分解结束。</p>
+</li>
+<li><p>完成这些步骤后,就能计算出 <code>n!</code>中所有 <code>a</code> 的因子数,即计数器中累加的结<br>果即为素因数 <code>a</code> 的幂指数。</p>
+</li>
+</ol>
+<p>巧妙利用阶乘的性质，可以得到更快的方法，该算法的时间复杂度为<code>O(log(n)/log(a))</code>。</p>
+<p>附上代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">#include &lt;stdio.h&gt;</div><div class="line"></div><div class="line">int solution(int n, int a);</div><div class="line"></div><div class="line">int main(int argc, char const *argv[]) &#123;</div><div class="line">  int n, a;</div><div class="line">  while (scanf(&quot;%d%d&quot;, &amp;n, &amp;a) != EOF) &#123;</div><div class="line">    printf(&quot;solution:%d\n&quot;, solution(n, a));</div><div class="line">  &#125;</div><div class="line">  return 0;</div><div class="line">&#125;</div><div class="line"></div><div class="line">int solution(int n, int a) &#123;</div><div class="line">  int cnt = 0;</div><div class="line">  int p = a;</div><div class="line">  while (n / p &gt; 0) &#123;</div><div class="line">    cnt += n / p;</div><div class="line">    p *= a;</div><div class="line">  &#125;</div><div class="line">  return cnt;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/算法/">算法</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2017/10/28/阶乘的整除问题/#disqus_thread" class="comments-count-link">Comments</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/10/14/sa-flags中的SA-NODEFER标志位/" title="sa_flags中的SA_NODEFER标志位" itemprop="url">sa_flags中的SA_NODEFER标志位</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="chendotjs" target="_blank" itemprop="author">chendotjs</a>
+		
+  <p class="article-time">
+    <time datetime="2017-10-14T07:42:18.000Z" itemprop="datePublished"> Published 2017-10-14</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h1 id="0x01-引言"><a href="#0x01-引言" class="headerlink" title="0x01 引言"></a>0x01 引言</h1><p>今天看<code>sigaction</code>的manual(man 3p sigaction)，知道可以通过设置<code>struct sigaction</code>的<code>sa_mask</code>成员，来指定哪些信号将要被阻塞。操纵<code>sa_mask</code>的函数包括：</p>
+<ul>
+<li>int sigemptyset(sigset_t *set);</li>
+<li>int sigfillset(sigset_t *set);</li>
+<li>int sigaddset(sigset_t *set, int signum);</li>
+<li>int sigdelset(sigset_t *set, int signum);</li>
+</ul>
+<p>同时，我们可以通过设置<code>struct sigaction</code>的<code>sa_flags</code>成员来控制信号的行为。<br>常见的FLAGS包括：</p>
+<ul>
+<li>SA_RESETHAND：处理函数被调用时，重置信号的处理函数为SIG_DFL</li>
+<li>SA_SIGINFO：决定调用<code>sa_handler</code>还是<code>sa_sigaction</code></li>
+</ul>
+<p>manual对于<code>SA_NODEFER</code>的解释如下:</p>
+<blockquote>
+<p>If set and sig is caught, sig shall not be added to the thread’s signal mask on entry to the signal handler unless it is included in sa_mask.  Otherwise, sig shall always be added to the thread’s signal mask on entry to the signal handler.</p>
+</blockquote>
+<p>看了好一会还是没弄懂啥意思，后来google了一下，发现了另一种解释(man 2 sigaction)：</p>
+<blockquote>
+<p>Do not prevent the signal from being received from within its own signal handler.  This flag is meaningful only when establishing a signal handler.  SA_NOMASK is an obsolete, nonstandard synonym for this flag.</p>
+</blockquote>
+<p>就是说<code>SA_NODEFER</code>可以控制是否在handler里面再去接受相应信号。</p>
+<h1 id="0x02-第一个例子"><a href="#0x02-第一个例子" class="headerlink" title="0x02 第一个例子"></a>0x02 第一个例子</h1><p>这里不对<code>sa_flags</code>做任何设置。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">#include &lt;signal.h&gt;</div><div class="line">#include &lt;stdio.h&gt;</div><div class="line">#include &lt;unistd.h&gt;</div><div class="line"></div><div class="line">void handler(int signo) &#123;</div><div class="line">  printf(&quot;Into handler\n&quot;);</div><div class="line">  while (1)</div><div class="line">    ;</div><div class="line">  printf(&quot;Leaving handler\n&quot;);</div><div class="line">&#125;</div><div class="line"></div><div class="line">int main() &#123;</div><div class="line">  struct sigaction act;</div><div class="line">  act.sa_handler = handler;</div><div class="line">  act.sa_flags = 0;</div><div class="line">  sigemptyset(&amp;act.sa_mask);</div><div class="line">  sigaction(SIGINT, &amp;act, NULL);</div><div class="line">  while (1)</div><div class="line">    ;</div><div class="line">  return 0;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>运行结果：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"># chen @ vostro in /tmp [16:09:18]</div><div class="line">$ ./a.out</div><div class="line">^CInto handler</div><div class="line">^C^C^C^C^\[1]    19345 quit (core dumped)  ./a.out</div></pre></td></tr></table></figure></p>
+<p>可以清楚的看到，在进入<code>handler</code>的死循环之后，不会接受新的<code>SIGINT</code>信号。</p>
+<h1 id="0x03-第二个例子"><a href="#0x03-第二个例子" class="headerlink" title="0x03 第二个例子"></a>0x03 第二个例子</h1><p>再来一个例子，这里设置了<code>SA_NODEFER</code>标志：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">#include &lt;signal.h&gt;</div><div class="line">#include &lt;stdio.h&gt;</div><div class="line">#include &lt;unistd.h&gt;</div><div class="line"></div><div class="line">volatile int cnt = 0;</div><div class="line"></div><div class="line">void handler(int signo) &#123;</div><div class="line">  cnt++;</div><div class="line">  printf(&quot;Into handler\n&quot;);</div><div class="line">  printf(&quot;handler %d\n&quot;, cnt);</div><div class="line">  sleep(1);</div><div class="line">  printf(&quot;Leaving handler\n&quot;);</div><div class="line">&#125;</div><div class="line"></div><div class="line">int main() &#123;</div><div class="line">  struct sigaction act;</div><div class="line">  act.sa_handler = handler;</div><div class="line">  act.sa_flags = SA_NODEFER;</div><div class="line">  sigemptyset(&amp;act.sa_mask);</div><div class="line">  sigaction(SIGINT, &amp;act, NULL);</div><div class="line">  while (1)</div><div class="line">    ;</div><div class="line">  return 0;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>快速按3次<code>ctrl+c</code>的组合键，运行结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"># chen @ vostro in /tmp [16:12:35] C:131</div><div class="line">$ ./a.out</div><div class="line">^CInto handler</div><div class="line">handler 1</div><div class="line">^CInto handler</div><div class="line">handler 2</div><div class="line">^CInto handler</div><div class="line">handler 3</div><div class="line">Leaving handler</div><div class="line">Leaving handler</div><div class="line">Leaving handler</div></pre></td></tr></table></figure>
+<p>结果很明显，在进入<code>handler</code>之后，程序还是响应了<code>SIGINT</code>信号。</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/c语言/">c语言</a><a href="/tags/linux/">linux</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2017/10/14/sa-flags中的SA-NODEFER标志位/#disqus_thread" class="comments-count-link">Comments</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/10/05/青海调试之旅/" title="青海调试之旅" itemprop="url">青海调试之旅</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="chendotjs" target="_blank" itemprop="author">chendotjs</a>
+		
+  <p class="article-time">
+    <time datetime="2017-10-05T14:04:27.000Z" itemprop="datePublished"> Published 2017-10-05</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>2017.09.04-2017.09.24在紫金山天文台青海观测站（德令哈）调试量子通信1m2望远镜硬件以及软件</p>
+<p>第一次来到中国广袤的大西北，被辽阔的天地深深的震撼</p>
+<p>天上的风那么自由，天上的云那么徜徉</p>
+<p>耸立的山脉，宁静的湖水</p>
+<p><hr></p>
+<p><hr></p>
+<hr>
+
+<p><img src="/2017/10/05/青海调试之旅/IMG_20170904_192459.jpg" alt=""></p>
+<p>西宁曹家堡机场</p>
+<p><img src="/2017/10/05/青海调试之旅/IMG_20170905_120938.jpg" alt=""></p>
+<p>青海湖油菜田</p>
+<p><img src="/2017/10/05/青海调试之旅/IMG_20170905_121001.jpg" alt=""></p>
+<p>青海湖油菜田</p>
+<p><img src="/2017/10/05/青海调试之旅/IMG_20170906_102608.jpg" alt=""></p>
+<p>遥远的雪山</p>
+<p><img src="/2017/10/05/青海调试之旅/IMG_20170906_103244.jpg" alt=""></p>
+<p>紫金山天文台青海观测站</p>
+<p><img src="/2017/10/05/青海调试之旅/IMG_20170908_170434.jpg" alt=""></p>
+<p>风云变幻</p>
+<p><img src="/2017/10/05/青海调试之旅/IMG_20170909_164811.jpg" alt=""></p>
+<p>吊车与台站</p>
+<p><img src="/2017/10/05/青海调试之旅/IMG_20170910_200252.jpg" alt=""></p>
+<p>紫色的晚霞</p>
+<p><img src="/2017/10/05/青海调试之旅/IMG_20170913_205859.jpg" alt=""></p>
+<p>海子诗歌纪念馆</p>
+<p><img src="/2017/10/05/青海调试之旅/IMG_20170914_173902.jpg" alt=""></p>
+<p>蓄集乡水库</p>
+<p><img src="/2017/10/05/青海调试之旅/IMG_20170921_012015.jpg" alt=""></p>
+<p>老严烤肉——炕羊排</p>
+<p><img src="/2017/10/05/青海调试之旅/IMG_20170923_135910.jpg" alt=""></p>
+<p>路边随拍</p>
+<p><img src="/2017/10/05/青海调试之旅/IMG_20170924_112559.jpg" alt=""></p>
+<p>贵德国家地质公园——丹霞地貌</p>
+<p><img src="/2017/10/05/青海调试之旅/IMG_20170924_124736.jpg" alt=""></p>
+<p>贵德黄河悬索桥</p>
+<p><img src="/2017/10/05/青海调试之旅/IMG_20170924_124953.jpg" alt=""></p>
+<p>天下黄河贵德清</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2017/10/05/青海调试之旅/#disqus_thread" class="comments-count-link">Comments</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/08/30/研一学年总结/" title="研一学年总结" itemprop="url">研一学年总结</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="chendotjs" target="_blank" itemprop="author">chendotjs</a>
+		
+  <p class="article-time">
+    <time datetime="2017-08-30T12:32:56.000Z" itemprop="datePublished"> Published 2017-08-30</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h2 id="回顾"><a href="#回顾" class="headerlink" title="回顾"></a>回顾</h2><p>从去年毕业来到合肥至今，已经一年有余了。还有几天就要开学了，真的步入研二了。本来七月就想把这篇总结给写掉，后来各种事拖拖拖，就到了今天。估计这篇总结只能写成一篇流水账，毕竟一年里发生了太多的事情了。</p>
+<p>2016年7，8月都扑在bsst的远程控制上，和jerry、zgy师兄反复修改web服务的架构，以提升在巨大网络延迟之下的用户体验。研一上学期的生活还算比较舒适，修了很多学分。对我而言，比较实用且好玩的课程就是<code>FPGA</code>了，最后的课程设计是利用SoC实现一个简单的CPU，并对周围的硬件外设进行操控。其他的工作就是逐渐切入实验室的新项目，给量子望远镜的滤光片转轮盒写了上位机程序，对导星功能做了调研，设计了导星功能的大致流程。在代码方面，自己更重视一些规范了。现在写代码已经养成了必须用版本控制的习惯，没有git的辅助总感觉不是那么放心，回想起本科低年级的时候写代码的经历，真是刀耕火种的年代。熟练掌握版本控制是优秀程序员的基本素养，以git为例，我觉得需要掌握<code>add push pull clone merge cherry-pick rebase bisect cat-file branch checkout reflog reset log remote config</code>，有这些知识就足够应付大部分工作需求了。</p>
+<p>如果说研一上学期是适应、积累过程，研一下学期算是融入整个环境了。研一下学期选了一些有趣的课程，朱明老师的《数据挖掘》、曹洋老师的《计算机视觉》，自学了Andrew Ng的《Machine Learning》。5月份被dsc师兄拉进了一个小创业公司做智能摄像头。技术团队10个人都是科大硕博，几个微软实验室的博士做深度学习的炼丹，我负责把智能算法和外围功能结合起来的开发工作。今年几个毕业的学长去向大概是阿里云、百度、地平线、华为。不知道我毕业时候能去哪呢。</p>
+<h2 id="读的书"><a href="#读的书" class="headerlink" title="读的书"></a>读的书</h2><p>今年完整读过的书：</p>
+<ul>
+<li>《C专家编程》</li>
+<li>《C程序性能优化 : 20个实验与达人技巧》</li>
+<li>《Git权威指南》</li>
+<li>《思考的乐趣 : Matrix67数学笔记》</li>
+<li>《我的应许之地 : 以色列的荣耀与悲情》</li>
+<li>《斯坦福极简经济学 : 如何果断地权衡利益得失》</li>
+<li>《万历十五年 : 增订纪念本》</li>
+<li>《明朝那些事儿（1-9） : 限量版》</li>
+<li>《活着》</li>
+<li>《简约至上 : 交互式设计四策略》</li>
+</ul>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>still long long way to go…</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/总结/">总结</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2017/08/30/研一学年总结/#disqus_thread" class="comments-count-link">Comments</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/07/24/INT-STRLEN-BOUND宏浅析/" title="INT_STRLEN_BOUND宏浅析" itemprop="url">INT_STRLEN_BOUND宏浅析</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="chendotjs" target="_blank" itemprop="author">chendotjs</a>
+		
+  <p class="article-time">
+    <time datetime="2017-07-24T01:57:28.000Z" itemprop="datePublished"> Published 2017-07-24</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>今天翻<a href="http://git.savannah.gnu.org/gitweb/?p=coreutils.git;a=tree" target="_blank" rel="external">GNU Coreutils</a>的源代码，看到一个有意思的地方，gnu封装了一系列转换整数到字符串的函数，如</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">char</span> *<span class="title">imaxtostr</span> <span class="params">(<span class="keyword">intmax_t</span>, <span class="keyword">char</span> *)</span> __attribute_warn_unused_result__</span>;</div><div class="line"><span class="function"><span class="keyword">char</span> *<span class="title">inttostr</span> <span class="params">(<span class="keyword">int</span>, <span class="keyword">char</span> *)</span> __attribute_warn_unused_result__</span>;</div><div class="line"><span class="function"><span class="keyword">char</span> *<span class="title">offtostr</span> <span class="params">(<span class="keyword">off_t</span>, <span class="keyword">char</span> *)</span> __attribute_warn_unused_result__</span>;</div><div class="line"><span class="function"><span class="keyword">char</span> *<span class="title">uinttostr</span> <span class="params">(<span class="keyword">unsigned</span> <span class="keyword">int</span>, <span class="keyword">char</span> *)</span> __attribute_warn_unused_result__</span>;</div><div class="line"><span class="function"><span class="keyword">char</span> *<span class="title">umaxtostr</span> <span class="params">(<span class="keyword">uintmax_t</span>, <span class="keyword">char</span> *)</span> __attribute_warn_unused_result__</span>;</div></pre></td></tr></table></figure>
+<p>最后都在<code>char *anytostr (inttype i, char *buf)</code>得到实现。</p>
+<p>为了存储转换的字符串，需要开辟一个字符数组，比如<a href="http://git.savannah.gnu.org/gitweb/?p=coreutils.git;a=blob;f=src/tail.c;h=ce34886cde636ef9ec71594aae2a0dfee90d98b9;hb=HEAD#l474" target="_blank" rel="external">tail.c</a></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">off_t</span> new_offset = lseek (fd, offset, whence); <span class="comment">// 得到整型new_offset</span></div><div class="line"><span class="keyword">char</span> buf[INT_BUFSIZE_BOUND (offset)];  <span class="comment">// 开辟数组</span></div><div class="line"><span class="keyword">char</span> *s;</div><div class="line"><span class="keyword">if</span> (<span class="number">0</span> &lt;= new_offset)</div><div class="line">  <span class="keyword">return</span> new_offset;</div><div class="line">s = offtostr (offset, buf); <span class="comment">// s = buf, or s = buf + 1, or s = buf + 2 ...</span></div></pre></td></tr></table></figure>
+<p>字符数组的大小由<code>INT_BUFSIZE_BOUND</code>这个宏决定。<br>去代码里面搜<code>INT_BUFSIZE_BOUND</code>的实现，在<code>intprops.h</code>里面有<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">define</span> INT_BUFSIZE_BOUND(t) (INT_STRLEN_BOUND (t) + 1)</span></div></pre></td></tr></table></figure></p>
+<p>看来还得挖掘一下<code>INT_STRLEN_BOUND</code>宏的实现。</p>
+<h2 id="陷入迷茫"><a href="#陷入迷茫" class="headerlink" title="陷入迷茫"></a>陷入迷茫</h2><p>在<code>intprops.h</code>里面有各种宏的嵌套定义，我来简化（INT_STRLEN_BOUND的另一种实现）一下，大概意思就是</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">define</span> CHAR_BIT (8)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> INT_STRLEN_BOUND(t) ((sizeof(t) * CHAR_BIT - 1) * 146 / 485 + 2)</span></div></pre></td></tr></table></figure>
+<p>看来<code>INT_STRLEN_BOUND</code>和<code>t</code>的数据类型有关，和我猜测的和数值大小没关系。但是146和485这两个magic number是什么东西…</p>
+<h2 id="你会怎样实现"><a href="#你会怎样实现" class="headerlink" title="你会怎样实现"></a>你会怎样实现</h2><p>静下来想想，如果是我来写这个代码，我会怎么样实现。可能需要考虑的问题:</p>
+<ul>
+<li>需要分类有符号数和无符号数么</li>
+<li>有符号数的负号也需要添加到字符串中</li>
+</ul>
+<p>在讨论之前明确，要想长度为<code>b</code>字符串(不考虑末尾的’\0’)能够容纳<code>t</code>，就是要保证字符串表示的最大数值要大于等于<code>t</code>的最大值。</p>
+<h5 id="t是无符号类型"><a href="#t是无符号类型" class="headerlink" title="t是无符号类型"></a>t是无符号类型</h5><p>长度为<code>b</code>字符串(不考虑末尾的’\0’)的最大十进制数为<code>10^b - 1</code>, <code>t</code>类型的最大值为<code>2^(sizeof(t) * CHAR_BIT) - 1</code>，</p>
+<p>也就是要 <code>10^b - 1</code> &gt;= <code>2^(sizeof(t) * CHAR_BIT) - 1</code>，即</p>
+<p><code>b &gt;= log10(2) * (sizeof(t) * CHAR_BIT)</code></p>
+<h5 id="t是有符号类型"><a href="#t是有符号类型" class="headerlink" title="t是有符号类型"></a>t是有符号类型</h5><p><code>t</code>的最前面一位为符号位，我们在字符串最前面也预留一个负号的位置(也可以不用)。<br>所以<code>10^(b-1) - 1</code> &gt;= <code>2^(sizeof(t) * CHAR_BIT - 1) - 1</code>， 即<br><code>b &gt;= log10(2) * (sizeof(t) * CHAR_BIT - 1) + 1</code></p>
+<h5 id="统一t的类型"><a href="#统一t的类型" class="headerlink" title="统一t的类型"></a>统一t的类型</h5><p>对于上面分类讨论结果，为了统一，就是取<code>max{log10(2) * (sizeof(t) * CHAR_BIT), log10(2) * (sizeof(t) * CHAR_BIT - 1) + 1}</code>，因为<code>log10(2) = 0.3010299956</code>， 所以</p>
+<p><code>max{log10(2) * (sizeof(t) * CHAR_BIT), log10(2) * (sizeof(t) * CHAR_BIT - 1) + 1} = log10(2) * (sizeof(t) * CHAR_BIT - 1) + 1</code></p>
+<p>所以最终的结果是 <code>b &gt;= log10(2) * (sizeof(t) * CHAR_BIT - 1) + 1</code>， 因为考虑到<code>b</code>是整数以及整数乘法的截尾特性，取 <code>b = log10(2) * (sizeof(t) * CHAR_BIT - 1) + 2</code></p>
+<h2 id="豁然开朗"><a href="#豁然开朗" class="headerlink" title="豁然开朗"></a>豁然开朗</h2><p>回头看代码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">define</span> CHAR_BIT (8)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> INT_STRLEN_BOUND(t) ((sizeof(t) * CHAR_BIT - 1) * 146 / 485 + 2)</span></div></pre></td></tr></table></figure>
+<p>是不是感觉和上面讨论结果在结构上有很大的相似性，计算一下<code>146 / 485 = 0.301030927835</code>， 稍微大于<code>log10(2)</code>， 可以保证空间足够。what a magic!</p>
+<h2 id="蓦然回首"><a href="#蓦然回首" class="headerlink" title="蓦然回首"></a>蓦然回首</h2><p>回头翻一下代码的注释，<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">/* Bound on length of the string representing an integer type or expression T.</div><div class="line">   Subtract 1 for the sign bit if t is signed; log10 (2.0) &lt; 146/485;</div><div class="line">   add 1 for integer division truncation; add 1 more for a minus sign</div><div class="line">   if needed.  */</div></pre></td></tr></table></figure></p>
+<p>嘿，这不就是我们思考的过程么～源码面前了无秘密!</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/c语言/">c语言</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2017/07/24/INT-STRLEN-BOUND宏浅析/#disqus_thread" class="comments-count-link">Comments</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/07/06/编译v8引擎/" title="编译v8引擎" itemprop="url">编译v8引擎</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="chendotjs" target="_blank" itemprop="author">chendotjs</a>
+		
+  <p class="article-time">
+    <time datetime="2017-07-06T02:03:53.000Z" itemprop="datePublished"> Published 2017-07-06</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>我们都知道谷歌浏览器<code>chrome</code>采用的javascript引擎是<code>v8</code>，<code>node.js</code>这样的runtime能够火遍全球，很大一部分功劳得归于<code>v8</code>。半年前就想自己编译<code>v8</code>引擎玩玩，无奈GFW阻挠了大部分下载，实在是体验太差，于是放弃。今天重新编译<code>v8</code>，先把代码从墙外的vps下载下来，再用<code>tar</code>打个包下载到本地，就可以在本地编译了。</p>
+<h2 id="实验环境"><a href="#实验环境" class="headerlink" title="实验环境"></a>实验环境</h2><ul>
+<li>操作系统：Archlinux</li>
+<li>GCC-7.1.1</li>
+<li><code>v8</code>源码的版本是6.1.99</li>
+</ul>
+<h2 id="步骤记录"><a href="#步骤记录" class="headerlink" title="步骤记录"></a>步骤记录</h2><p>本文参考的资料主要是<a href="https://zhuanlan.zhihu.com/p/25120909" target="_blank" rel="external">编译 V8 源码</a>以及<a href="https://github.com/v8/v8/wiki/Getting-Started-with-Embedding" target="_blank" rel="external">Getting Started with Embedding</a>。</p>
+<h5 id="0x01"><a href="#0x01" class="headerlink" title="0x01"></a>0x01</h5><p>先 clone depot_tools 文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git</div></pre></td></tr></table></figure></p>
+<p>将 depot_tools 添加到当前shell的环境变量 PATH：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">export PATH=`pwd`/depot_tools:&quot;$PATH&quot;</div></pre></td></tr></table></figure></p>
+<p>注意，depot_tools包含的是谷歌自己的一套工具链，里面包含了构建系统Ninja(类似Makefile)，以及生成Ninja文件的GN工具。</p>
+<p>这一套工具都是用<code>python2</code>编写的，所以我们确保系统的<code>python</code>是<code>python2</code>版本。在Archlinux下面，默认的<code>python</code>版本是<code>python3</code>，所以我强制创建了软链接，<code>sudo ln -sf /bin/python2 /bin/python</code>，记得编译完<code>v8</code>之后再把版本改回去。</p>
+<h5 id="0x02"><a href="#0x02" class="headerlink" title="0x02"></a>0x02</h5><p>安装 depot_tools 构建系统的所有依赖，运行：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">gclient sync</div></pre></td></tr></table></figure></p>
+<p>这样会下载<code>v8</code>最新的源代码以及第三方依赖(比如llvm，clang-format)。</p>
+<p>我们并不需要所有的分支，所以<code>fetch v8</code>可以不执行。</p>
+<p>如果这步完成，就可以将<code>depot_tools</code>和<code>v8</code>用<code>tar</code>打包，下载回本地进行编译了。</p>
+<p>目录结构：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># user1 @ nek-amd in /home/chen [10:08:51]</span></div><div class="line">$ tree -L 1 v8   </div><div class="line">v8</div><div class="line">├── depot_tools</div><div class="line">└── v8</div></pre></td></tr></table></figure>
+<h5 id="0x03"><a href="#0x03" class="headerlink" title="0x03"></a>0x03</h5><p>先安装一些不常用的依赖。<code>v8</code>依赖<code>libtinfo5</code>，在archlinux下面可以从aur里面装<code>ncurses5-compat-libs</code>这个包。其他发行版按实际情况。</p>
+<p>进入v8目录，<code>v8gen</code>生成 <code>ninja</code> 构建文件：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cd v8 &amp;&amp; tools/dev/v8gen.py x64.debug</div></pre></td></tr></table></figure></p>
+<p>这样就会在<code>out.gn</code>目录下生成<code>x64.debug</code>目录，包含了最重要的<code>build.ninja</code>文件。</p>
+<p>编译源码，生成可执行文件，目标系统 x64：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ninja -C out.gn/x64.debug</div></pre></td></tr></table></figure></p>
+<p>生成debug版本比release版本要快一些。</p>
+<p>如果编译过程中出错，要仔细查看报错信息以及翻阅相关文档，相信最后一定都可以解决。</p>
+<p>编译完后，可以看到<code>out.gn/x64.debug</code>目录下多出许多动态链接库文件一个叫<code>d8</code>的可执行文件。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># user1 @ nek-amd in /home/chen/v8/v8 on git:e81af43045 x [10:57:34]</span></div><div class="line">$ ls out.gn/x64.debug/*.so</div><div class="line">out.gn/x64.debug/libicui18n.so  out.gn/x64.debug/libv8_for_testing.so  out.gn/x64.debug/libv8_libplatform.so</div><div class="line">out.gn/x64.debug/libicuuc.so    out.gn/x64.debug/libv8_libbase.so      out.gn/x64.debug/libv8.so</div></pre></td></tr></table></figure>
+<h5 id="0x04"><a href="#0x04" class="headerlink" title="0x04"></a>0x04</h5><p>最后一步就是编译<a href="https://chromium.googlesource.com/v8/v8/+/master/samples/hello-world.cc" target="_blank" rel="external">hello-world.cc</a>。</p>
+<p>先执行<code>cp out.gn/x64.release/*.bin .</code>，拷贝快照文件到v8根目录。</p>
+<p>如果按照<a href="https://github.com/v8/v8/wiki/Getting-Started-with-Embedding#run-the-example" target="_blank" rel="external">官网教程</a>，肯定是不能通过的，因为教程使用的是v5.8的代码。动态链接库的名字已经变掉了。</p>
+<p>如功能弄清楚编译的基本原理，就可以按照自己的需求修改编译命令。我修改了官网给的编译命令如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">g++ -I. -Iinclude samples/hello-world.cc -o hello-world -Lout.gn/x64.debug -Wl,-rpath=out.gn/x64.debug -Wl,--start-group \</div><div class="line">-lv8_libbase -lv8_libplatform -lv8 \</div><div class="line">-licuuc -licui18n \</div><div class="line">-Wl,--end-group -lrt -ldl -pthread -std=c++0x</div></pre></td></tr></table></figure>
+<p>就可以成功编译<code>hello-world.cc</code>了。</p>
+<p>执行效果：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># user1 @ nek-amd in /home/chen/v8/v8 on git:e81af43045 x [11:07:35]</span></div><div class="line">$ ./hello-world</div><div class="line">Hello, World!</div></pre></td></tr></table></figure>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/v8/">v8</a><a href="/tags/编译/">编译</a><a href="/tags/chrome/">chrome</a><a href="/tags/hello-world/">hello world</a><a href="/tags/javascript/">javascript</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2017/07/06/编译v8引擎/#disqus_thread" class="comments-count-link">Comments</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/06/24/v4l2配合SDL2显示摄像头视频/" title="v4l2配合SDL2显示摄像头视频" itemprop="url">v4l2配合SDL2显示摄像头视频</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="chendotjs" target="_blank" itemprop="author">chendotjs</a>
+		
+  <p class="article-time">
+    <time datetime="2017-06-23T16:22:56.000Z" itemprop="datePublished"> Published 2017-06-24</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>前段时间帮公司做行为识别相关的产品预研，发现研发们都是通过<code>fswebcam</code>这个小工具从摄像头取一帧照片。后来因为要把摄像头的功能集成到产品原型里面，要求可以实时显示摄像头内容。老大把这个光荣的任(hei)务(guo)交给了我这个多媒体小白。</p>
+<h2 id="可行的技术方案"><a href="#可行的技术方案" class="headerlink" title="可行的技术方案"></a>可行的技术方案</h2><p>通过调研，发现<code>v4l2</code>驱动以及<code>ffmpeg</code>这两个东东都可以对摄像头进行操控。<code>v4l2</code>是<code>Video4Linux version2</code>的简写，<code>ffmpeg</code>是一个可以运行音频和视频多种格式的录影、转换、流功能的开源软件。不同的操作系统都提供了自己的摄像头驱动，比如windows的<code>dshow</code>，os x的<code>avfoundation</code>，在linux下面就是<code>v4l2</code>了。<code>ffmpeg</code>作为一个扩平台的软件，如果你去翻源代码，你就会发现它在linux平台对摄像头进行操作正是基于<code>v4l2</code>驱动。</p>
+<p><code>ffmpeg</code>也提供了简单的多媒体播放器功能——<code>ffplay</code>，基于<code>SDL</code>。可以说，<code>ffplay</code>就为这个需求提供了一个模板。这一块具体可以参考雷霄骅博士的博文<a href="http://blog.csdn.net/leixiaohua1020/article/details/8652605" target="_blank" rel="external">100行代码实现最简单的基于FFMPEG+SDL的视频播放器（SDL1.x）</a></p>
+<p>因为整个产品跑在一个嵌入式小开发板上面，考虑到<code>ffmpeg</code>可能比较重，我直接采用<code>v4l2</code>驱动这条路线。</p>
+<h2 id="v4l2编程"><a href="#v4l2编程" class="headerlink" title="v4l2编程"></a>v4l2编程</h2><p>这一块网上有太多的资料了，无非就是那么个套路，通过<code>ioctl</code>系统调用给驱动发送相应request，设置好摄像头的各项参数之后，通过<code>VIDIOC_DQBUF</code>(驱动数据停止流动，待用户取出)和<code>VIDIOC_QBUF</code>(驱动的数据流动)就可以实现帧数据的连续采集。</p>
+<p>这边只说几个我在开发时遇到的坑：</p>
+<ul>
+<li><p>摄像头取出的数据是经过编码的，如<code>YUYV422</code>、<code>MJPEG</code>等格式，这在<code>v4l2</code>编程时是可以指定的。编码格式一定要搞清楚，否则在后续显示或者转码时就头大了。具体的查看方式可以用<code>v4l2-ctl --list-formats-ext</code>或者<code>ffmpeg -f v4l2 -list_formats all -i /dev/video0</code>这两个命令。</p>
+</li>
+<li><p>执行<code>ioctl(fd, VIDIOC_DQBUF, &amp;buf)</code>这句话时阻塞，因为没有数据可以取出。换另一个型号的摄像头却没有问题。对比翻阅了一下<code>fswebcam</code>的源码，发现自己少设置了帧率，加上<a href="https://github.com/fsphil/fswebcam/blob/master/src_v4l2.c#L628" target="_blank" rel="external"><code>ioctl(s-&gt;fd, VIDIOC_S_PARM, &amp;setfps)</code></a>就好了。</p>
+</li>
+</ul>
+<h2 id="SDL2编程"><a href="#SDL2编程" class="headerlink" title="SDL2编程"></a>SDL2编程</h2><p>可以参考<a href="http://lazyfoo.net/tutorials/SDL/" target="_blank" rel="external">Lazyfoo的教程</a>。</p>
+<p>对于视频的显示，第一种可以采用固定帧率的方式，通过<code>void SDL_Delay(Uint32 ms)</code>这种方式。雷博的博客里面为了简单也是这么做的。第二种可以通过<code>select</code>系统调用来判断摄像头数据是否到位，笔者的示例程序也是采用这种方式。</p>
+<h2 id="示例代码"><a href="#示例代码" class="headerlink" title="示例代码"></a>示例代码</h2><p>放在github上面了，希望给刚接触的朋友一点参考。</p>
+<p><a href="https://github.com/chendotjs/Webcam-SDL2/" target="_blank" rel="external">https://github.com/chendotjs/Webcam-SDL2/</a></p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/v4l2/">v4l2</a><a href="/tags/SDL2/">SDL2</a><a href="/tags/摄像头/">摄像头</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2017/06/24/v4l2配合SDL2显示摄像头视频/#disqus_thread" class="comments-count-link">Comments</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/06/21/状态码定义方式的改进/" title="状态码定义方式的改进" itemprop="url">状态码定义方式的改进</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="chendotjs" target="_blank" itemprop="author">chendotjs</a>
+		
+  <p class="article-time">
+    <time datetime="2017-06-21T06:11:19.000Z" itemprop="datePublished"> Published 2017-06-21</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>实验室做的项目中，基本都需要和硬件设备打交道。由于硬件设备的复杂性，我们通常会对设备抽象出一个状态码，来表示设备当前的状态。举个简单的例子，对于CCD相机，可能的状态包括：是否在制冷、是否在曝光、是否在读出，我们可以用一个bit来表示一个状态。如此，我们就会定义类似下面的代码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">define</span> COOL_MASK 0x01</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> EXPOSURE_MASK 0x02</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> READOUT_MASK 0x04</span></div><div class="line"><span class="keyword">unsigned</span> <span class="keyword">int</span> state;</div></pre></td></tr></table></figure>
+<p>通过 <code>XXX_MASK</code>与<code>state</code>按位与是否大于0来判断状态，也就是 <code>(XXX_MASK &amp; state) &gt; 0</code> 。</p>
+<h2 id="改进"><a href="#改进" class="headerlink" title="改进"></a>改进</h2><p>这样定义有一个缺陷，状态量太多时候掩码会很多，并且看起来不明显（但是仍然是一个经典的方案）。</p>
+<p>先来看一个小例子，定义一个二进制数<code>a</code>的十进制数值为<code>dec(a)</code>。对于一个二进制数<code>xyz</code>(x,y,z只能为0或1，表示每一位)，我们通常计算其十进制数值的方式是<code>dec(xyz) = x*4 + y*2 + z*1</code>。</p>
+<p>但是换个角度，从移位运算的角度来看，二进制数<code>xy</code>的十进制数值可以看成<code>dec(xy) = dec(x)*2 + y</code>,二进制数<code>xyz</code>的十进制数值可以看成<code>dec(xyz) = dec(xy)*2 + z</code>。更一般化，<code>dec(x) = dec(0)*2 + x</code>。</p>
+<p>有了这个基础，我们就可以写出一点稍有技巧的代码，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> _ )*2 <span class="comment">/* 0 */</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> X )*2+1 <span class="comment">/* 1 */</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> s (((0  <span class="comment">/* begin */</span></span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> COOL_MASK       s _ _ X</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> EXPOSURE_MASK   s _ X _</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> READOUT_MASK    s X _ _</span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"%x\n"</span>, COOL_MASK);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"%x\n"</span>, EXPOSURE_MASK);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"%x\n"</span>, READOUT_MASK);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">undef</span> _</span></div><div class="line"><span class="meta">#<span class="meta-keyword">undef</span> X</span></div><div class="line"><span class="meta">#<span class="meta-keyword">undef</span> s</span></div></pre></td></tr></table></figure>
+<p>这样看起来似乎更有些self-documenting的味道。</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/c语言/">c语言</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2017/06/21/状态码定义方式的改进/#disqus_thread" class="comments-count-link">Comments</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/06/13/tigervnc-xfce4桌面安装/" title="tigervnc+xfce4桌面安装" itemprop="url">tigervnc+xfce4桌面安装</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="chendotjs" target="_blank" itemprop="author">chendotjs</a>
+		
+  <p class="article-time">
+    <time datetime="2017-06-13T08:03:12.000Z" itemprop="datePublished"> Published 2017-06-13</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h1 id="0x01-介绍"><a href="#0x01-介绍" class="headerlink" title="0x01 介绍"></a>0x01 介绍</h1><p>最近比较穷，考虑到服务器闲置有些浪费，不如用Vagex赚点小钱，起码把域名钱给我赚回来吧。Vagex提供了firefox的addon，我的vps没有安装桌面环境，特此记录一下从安装xfce4桌面环境到tigervnc的过程。</p>
+<h1 id="0x02-安装依赖"><a href="#0x02-安装依赖" class="headerlink" title="0x02 安装依赖"></a>0x02 安装依赖</h1><p>先安装Display Manager，我选择了lightdm</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo pacman -S lightdm</div></pre></td></tr></table></figure>
+<p>安装xorg</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo pacman -S xorg</div></pre></td></tr></table></figure>
+<p>安装xfce4</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">sudo pacman -S xfce4</div><div class="line">sudo pacman -S xfce4-goodies</div></pre></td></tr></table></figure>
+<p>最后安装tigervnc</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo pacman -S tigervnc</div></pre></td></tr></table></figure>
+<h1 id="0x03-配置"><a href="#0x03-配置" class="headerlink" title="0x03 配置"></a>0x03 配置</h1><p>编辑<code>xstartup</code>文件，vnc会读取<code>~/.vnc/xstartup</code>文件（功能类似于.xinitrc）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">#!/bin/sh</div><div class="line">exec startxfce4</div></pre></td></tr></table></figure>
+<p>最后在shell里面启动vncserver,</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">vncserver -geometry 800x600 :1</div></pre></td></tr></table></figure>
+<p>如此就可以通过vnc客户端进行连接了。</p>
+<h1 id="0x04-通过ssh端口转发保证安全"><a href="#0x04-通过ssh端口转发保证安全" class="headerlink" title="0x04 通过ssh端口转发保证安全"></a>0x04 通过ssh端口转发保证安全</h1><p>vnc貌似并不怎么安全，允许的密码长度比较短。所以我加了nftables规则，只允许某几个端口的开放。</p>
+<p>下面的文字摘自<a href="https://wiki.archlinux.org/index.php/Virtual_Network_Computing_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87" target="_blank" rel="external">Archwiki</a></p>
+<blockquote>
+<p>VNC服务运行的默认端口是 :1 ，它代表服务运行的TCP端口（5900+n = 端口号）。在此例中，它运行在 5900+1=5901 。再次执行VNC服务会创建另一个实例，并运行在下一个更高的空闲端口上，例如 :2 或说 5902。</p>
+</blockquote>
+<p>考虑到安全性，59xx的端口并没有被我开放。</p>
+<p>以我的vncserver端口为<code>:1</code>为例，我需要将客户端端口和服务器的<code>5901</code>端口打洞，通过在客户端的机器执行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ssh -L 5901:localhost:5901 &lt;服务器IP&gt;</div></pre></td></tr></table></figure>
+<p>可以达到我的目的。</p>
+<p>最后在tigervnc客户端连接<code>localhost:1</code>即可。</p>
+<p><img src="/2017/06/13/tigervnc-xfce4桌面安装/vncview_addr.png" alt="vncviewer的连接地址"></p>
+<p>最后放一张效果图：</p>
+<p><img src="/2017/06/13/tigervnc-xfce4桌面安装/vnc_demo.png" alt=""></p>
+<p><strong> ———- 2017/6/27 更新 ———- </strong></p>
+<p>昨天隔壁实验室服务器说被入侵了，去看了下情况，发现被一个广西的IP（通过wget下载了他vps上面的工具，所以知道是广西IP）登入并且下载了<code>yam</code>用来挖矿…用<code>lastlog</code>和<code>last</code>看了一下，发现登入的IP的竟然是<code>:1</code>，开始以为是IPv6，感觉小黑客真的牛逼，还能隐藏IP。</p>
+<p>查了半天系统日志，感觉黑客没有登入的痕迹。后来皓皓提醒了我，是不是<code>vnc</code>导致，去<code>~/.vnc</code>下面看了一下日志，发现黑客的IP在不断尝试破解<code>vnc</code>的密码，恰巧密码竟然只是弱口令<code>12345</code>…</p>
+<p>反思：<br>vnc是不安全的，技术上可以</p>
+<ul>
+<li>加防火墙</li>
+<li>安装<code>fail2ban</code></li>
+</ul>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/linux/">linux</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2017/06/13/tigervnc-xfce4桌面安装/#disqus_thread" class="comments-count-link">Comments</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+
+  <nav id="page-nav" class="clearfix">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">Next<span></span></a>
+  </nav>
+
+</div>
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+
+  
+<div class="github-card">
+<p class="asidetitle">Github Card</p>
+<div class="github-card" data-github="chendotjs" data-width="220" data-height="119" data-theme="medium">
+<script type="text/javascript" src="//cdn.jsdelivr.net/github-cards/latest/widget.js" ></script>
+</div>
+  </div>
+
+
+
+  
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/c语言/" title="c语言">c语言<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/linux/" title="linux">linux<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/汇编/" title="汇编">汇编<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/反汇编/" title="反汇编">反汇编<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/gdb/" title="gdb">gdb<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/SDL2/" title="SDL2">SDL2<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/摄像头/" title="摄像头">摄像头<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/CI，-DevOps/" title="CI， DevOps">CI， DevOps<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/配置/" title="配置">配置<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/v4l2/" title="v4l2">v4l2<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Docker/" title="Docker">Docker<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/总结/" title="总结">总结<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/v8/" title="v8">v8<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/编译/" title="编译">编译<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/chrome/" title="chrome">chrome<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/hello-world/" title="hello world">hello world<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/javascript/" title="javascript">javascript<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/算法/" title="算法">算法<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/缓冲区溢出/" title="缓冲区溢出">缓冲区溢出<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/数据挖掘/" title="数据挖掘">数据挖掘<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://coolshell.cn" target="_blank" title="酷 壳">酷 壳</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://xiaoysec.github.io/" target="_blank" title="西土城马戏团">西土城马戏团</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://news.ycombinator.com/" target="_blank" title="Hacker News">Hacker News</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+<div class="linkslist">
+	<a href="http://s11.flagcounter.com/more/cb"><img src="http://s11.flagcounter.com/count2/cb/bg_FFFFFF/txt_000000/border_CCCCCC/columns_2/maxflags_10/viewers_0/labels_0/pageviews_0/flags_0/percent_0/" alt="Flag Counter" border="0"></a>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	
+	<section class="info">
+		<p> A foo walks into a bar, <br/>
+			and says &quot;Hello Wold !&quot;</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		<a href="https://github.com/chendotjs" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		<a href="http://www.zhihu.com/people/chen-ya-qi-93" target="_blank" class="icon-zhihu" title="知乎"></a>
+		
+		
+		
+		<a href="mailto:chendotjs@gmail.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a>2017
+		
+		<a href="/about" target="_blank" title="chendotjs">@chendotjs</a>
+		
+
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?beac4dd688349f82bebe8f32bb4c52db";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+ </html>

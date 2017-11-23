@@ -1,0 +1,605 @@
+
+ <!DOCTYPE HTML>
+<html >
+<head>
+  <meta charset="UTF-8">
+  
+    <title>tigervnc+xfce4桌面安装 | 修竹幽晴堂</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="chendotjs">
+    
+
+    
+    <meta name="description" content="0x01 介绍最近比较穷，考虑到服务器闲置有些浪费，不如用Vagex赚点小钱，起码把域名钱给我赚回来吧。Vagex提供了firefox的addon，我的vps没有安装桌面环境，特此记录一下从安装xfce4桌面环境到tigervnc的过程。 0x02 安装依赖先安装Display Manager，我选择了lightdm 1sudo pacman -S lightdm 安装xorg 1sudo pac">
+<meta name="keywords" content="linux">
+<meta property="og:type" content="article">
+<meta property="og:title" content="tigervnc+xfce4桌面安装">
+<meta property="og:url" content="https://chendotjs.me/2017/06/13/tigervnc-xfce4桌面安装/index.html">
+<meta property="og:site_name" content="修竹幽晴堂">
+<meta property="og:description" content="0x01 介绍最近比较穷，考虑到服务器闲置有些浪费，不如用Vagex赚点小钱，起码把域名钱给我赚回来吧。Vagex提供了firefox的addon，我的vps没有安装桌面环境，特此记录一下从安装xfce4桌面环境到tigervnc的过程。 0x02 安装依赖先安装Display Manager，我选择了lightdm 1sudo pacman -S lightdm 安装xorg 1sudo pac">
+<meta property="og:image" content="https://chendotjs.me/2017/06/13/tigervnc-xfce4桌面安装/vncview_addr.png">
+<meta property="og:image" content="https://chendotjs.me/2017/06/13/tigervnc-xfce4桌面安装/vnc_demo.png">
+<meta property="og:updated_time" content="2017-07-27T06:26:24.822Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="tigervnc+xfce4桌面安装">
+<meta name="twitter:description" content="0x01 介绍最近比较穷，考虑到服务器闲置有些浪费，不如用Vagex赚点小钱，起码把域名钱给我赚回来吧。Vagex提供了firefox的addon，我的vps没有安装桌面环境，特此记录一下从安装xfce4桌面环境到tigervnc的过程。 0x02 安装依赖先安装Display Manager，我选择了lightdm 1sudo pacman -S lightdm 安装xorg 1sudo pac">
+<meta name="twitter:image" content="https://chendotjs.me/2017/06/13/tigervnc-xfce4桌面安装/vncview_addr.png">
+
+    
+    <link rel="alternative" href="/atom.xml" title="修竹幽晴堂" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/cman.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/cman.png">
+    
+    <link rel="stylesheet" href="/css/style.css">
+    <link href='https://cdn.webfont.youziku.com/webfonts/nomal/107517/46953/59ac0d56f629d80bf07d56a1.css' rel='stylesheet' type='text/css' />
+    <link href='https://fonts.font.im/css?family=Marck+Script' rel='stylesheet' type='text/css'>
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/cman.png" alt="修竹幽晴堂" title="修竹幽晴堂"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name" style="font-family:yuweifced3d62f61a3fd"><a href="/" title="修竹幽晴堂">修竹幽晴堂</a></h1>
+				<h2 class="blog-motto" style="font-family: 'Marck Script', cursive;">Done is better than perfect!</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
+						<input type="hidden" name="q" value="site:chendotjs.me">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/06/13/tigervnc-xfce4桌面安装/" title="tigervnc+xfce4桌面安装" itemprop="url">tigervnc+xfce4桌面安装</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="chendotjs" target="_blank" itemprop="author">chendotjs</a>
+		
+  <p class="article-time">
+    <time datetime="2017-06-13T08:03:12.000Z" itemprop="datePublished"> Published 2017-06-13</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">Contents</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#0x01-介绍"><span class="toc-number">1.</span> <span class="toc-text">0x01 介绍</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x02-安装依赖"><span class="toc-number">2.</span> <span class="toc-text">0x02 安装依赖</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x03-配置"><span class="toc-number">3.</span> <span class="toc-text">0x03 配置</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x04-通过ssh端口转发保证安全"><span class="toc-number">4.</span> <span class="toc-text">0x04 通过ssh端口转发保证安全</span></a></li></ol>
+		
+		</div>
+		
+		<h1 id="0x01-介绍"><a href="#0x01-介绍" class="headerlink" title="0x01 介绍"></a>0x01 介绍</h1><p>最近比较穷，考虑到服务器闲置有些浪费，不如用Vagex赚点小钱，起码把域名钱给我赚回来吧。Vagex提供了firefox的addon，我的vps没有安装桌面环境，特此记录一下从安装xfce4桌面环境到tigervnc的过程。</p>
+<h1 id="0x02-安装依赖"><a href="#0x02-安装依赖" class="headerlink" title="0x02 安装依赖"></a>0x02 安装依赖</h1><p>先安装Display Manager，我选择了lightdm</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo pacman -S lightdm</div></pre></td></tr></table></figure>
+<p>安装xorg</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo pacman -S xorg</div></pre></td></tr></table></figure>
+<p>安装xfce4</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">sudo pacman -S xfce4</div><div class="line">sudo pacman -S xfce4-goodies</div></pre></td></tr></table></figure>
+<p>最后安装tigervnc</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo pacman -S tigervnc</div></pre></td></tr></table></figure>
+<h1 id="0x03-配置"><a href="#0x03-配置" class="headerlink" title="0x03 配置"></a>0x03 配置</h1><p>编辑<code>xstartup</code>文件，vnc会读取<code>~/.vnc/xstartup</code>文件（功能类似于.xinitrc）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">#!/bin/sh</div><div class="line">exec startxfce4</div></pre></td></tr></table></figure>
+<p>最后在shell里面启动vncserver,</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">vncserver -geometry 800x600 :1</div></pre></td></tr></table></figure>
+<p>如此就可以通过vnc客户端进行连接了。</p>
+<h1 id="0x04-通过ssh端口转发保证安全"><a href="#0x04-通过ssh端口转发保证安全" class="headerlink" title="0x04 通过ssh端口转发保证安全"></a>0x04 通过ssh端口转发保证安全</h1><p>vnc貌似并不怎么安全，允许的密码长度比较短。所以我加了nftables规则，只允许某几个端口的开放。</p>
+<p>下面的文字摘自<a href="https://wiki.archlinux.org/index.php/Virtual_Network_Computing_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87" target="_blank" rel="external">Archwiki</a></p>
+<blockquote>
+<p>VNC服务运行的默认端口是 :1 ，它代表服务运行的TCP端口（5900+n = 端口号）。在此例中，它运行在 5900+1=5901 。再次执行VNC服务会创建另一个实例，并运行在下一个更高的空闲端口上，例如 :2 或说 5902。</p>
+</blockquote>
+<p>考虑到安全性，59xx的端口并没有被我开放。</p>
+<p>以我的vncserver端口为<code>:1</code>为例，我需要将客户端端口和服务器的<code>5901</code>端口打洞，通过在客户端的机器执行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ssh -L 5901:localhost:5901 &lt;服务器IP&gt;</div></pre></td></tr></table></figure>
+<p>可以达到我的目的。</p>
+<p>最后在tigervnc客户端连接<code>localhost:1</code>即可。</p>
+<p><img src="/2017/06/13/tigervnc-xfce4桌面安装/vncview_addr.png" alt="vncviewer的连接地址"></p>
+<p>最后放一张效果图：</p>
+<p><img src="/2017/06/13/tigervnc-xfce4桌面安装/vnc_demo.png" alt=""></p>
+<p><strong> ———- 2017/6/27 更新 ———- </strong></p>
+<p>昨天隔壁实验室服务器说被入侵了，去看了下情况，发现被一个广西的IP（通过wget下载了他vps上面的工具，所以知道是广西IP）登入并且下载了<code>yam</code>用来挖矿…用<code>lastlog</code>和<code>last</code>看了一下，发现登入的IP的竟然是<code>:1</code>，开始以为是IPv6，感觉小黑客真的牛逼，还能隐藏IP。</p>
+<p>查了半天系统日志，感觉黑客没有登入的痕迹。后来皓皓提醒了我，是不是<code>vnc</code>导致，去<code>~/.vnc</code>下面看了一下日志，发现黑客的IP在不断尝试破解<code>vnc</code>的密码，恰巧密码竟然只是弱口令<code>12345</code>…</p>
+<p>反思：<br>vnc是不安全的，技术上可以</p>
+<ul>
+<li>加防火墙</li>
+<li>安装<code>fail2ban</code></li>
+</ul>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/linux/">linux</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="https://chendotjs.me/2017/06/13/tigervnc-xfce4桌面安装/" data-title="tigervnc+xfce4桌面安装 | 修竹幽晴堂" data-tsina="null" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2017/06/21/状态码定义方式的改进/" title="状态码定义方式的改进">
+  <strong>上一篇：</strong><br/>
+  <span>
+  状态码定义方式的改进</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2017/05/04/缓冲区溢出初探/"  title="缓冲区溢出初探">
+ <strong>下一篇：</strong><br/> 
+ <span>缓冲区溢出初探
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#0x01-介绍"><span class="toc-number">1.</span> <span class="toc-text">0x01 介绍</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x02-安装依赖"><span class="toc-number">2.</span> <span class="toc-text">0x02 安装依赖</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x03-配置"><span class="toc-number">3.</span> <span class="toc-text">0x03 配置</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x04-通过ssh端口转发保证安全"><span class="toc-number">4.</span> <span class="toc-text">0x04 通过ssh端口转发保证安全</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+
+  
+<div class="github-card">
+<p class="asidetitle">Github Card</p>
+<div class="github-card" data-github="chendotjs" data-width="220" data-height="119" data-theme="medium">
+<script type="text/javascript" src="//cdn.jsdelivr.net/github-cards/latest/widget.js" ></script>
+</div>
+  </div>
+
+
+
+  
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/c语言/" title="c语言">c语言<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/linux/" title="linux">linux<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/汇编/" title="汇编">汇编<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/反汇编/" title="反汇编">反汇编<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/gdb/" title="gdb">gdb<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/SDL2/" title="SDL2">SDL2<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/摄像头/" title="摄像头">摄像头<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/CI，-DevOps/" title="CI， DevOps">CI， DevOps<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/配置/" title="配置">配置<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/v4l2/" title="v4l2">v4l2<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Docker/" title="Docker">Docker<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/总结/" title="总结">总结<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/v8/" title="v8">v8<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/编译/" title="编译">编译<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/chrome/" title="chrome">chrome<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/hello-world/" title="hello world">hello world<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/javascript/" title="javascript">javascript<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/算法/" title="算法">算法<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/缓冲区溢出/" title="缓冲区溢出">缓冲区溢出<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/数据挖掘/" title="数据挖掘">数据挖掘<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://coolshell.cn" target="_blank" title="酷 壳">酷 壳</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://xiaoysec.github.io/" target="_blank" title="西土城马戏团">西土城马戏团</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://news.ycombinator.com/" target="_blank" title="Hacker News">Hacker News</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+<div class="linkslist">
+	<a href="http://s11.flagcounter.com/more/cb"><img src="http://s11.flagcounter.com/count2/cb/bg_FFFFFF/txt_000000/border_CCCCCC/columns_2/maxflags_10/viewers_0/labels_0/pageviews_0/flags_0/percent_0/" alt="Flag Counter" border="0"></a>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	
+	<section class="info">
+		<p> A foo walks into a bar, <br/>
+			and says &quot;Hello Wold !&quot;</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		<a href="https://github.com/chendotjs" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		<a href="http://www.zhihu.com/people/chen-ya-qi-93" target="_blank" class="icon-zhihu" title="知乎"></a>
+		
+		
+		
+		<a href="mailto:chendotjs@gmail.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a>2017
+		
+		<a href="/about" target="_blank" title="chendotjs">@chendotjs</a>
+		
+
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'chendotjsme';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?beac4dd688349f82bebe8f32bb4c52db";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

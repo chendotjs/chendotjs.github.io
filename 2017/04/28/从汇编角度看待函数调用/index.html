@@ -1,0 +1,695 @@
+
+ <!DOCTYPE HTML>
+<html >
+<head>
+  <meta charset="UTF-8">
+  
+    <title>从汇编角度看待函数调用 | 修竹幽晴堂</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="chendotjs">
+    
+
+    
+    <meta name="description" content="引言函数调用对于程序员而言，就像每天吃饭睡觉一样普通寻常。几乎每种编程语言都会提供函数定义、函数调用的功能。但是，在看起来寻常不过的函数调用背后，系统内核帮助我们做了很多事情。下面，我打算通过反汇编的方法，从汇编语言的层次来阐释函数调用的实现。 基础知识先回顾几个概念，这样可以帮助我们顺利地理解后面实验的结果。 调用函数(caller)和被调函数(callee)调用函数(caller)向被调函数(">
+<meta name="keywords" content="c语言,汇编,反汇编,gdb">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从汇编角度看待函数调用">
+<meta property="og:url" content="https://chendotjs.me/2017/04/28/从汇编角度看待函数调用/index.html">
+<meta property="og:site_name" content="修竹幽晴堂">
+<meta property="og:description" content="引言函数调用对于程序员而言，就像每天吃饭睡觉一样普通寻常。几乎每种编程语言都会提供函数定义、函数调用的功能。但是，在看起来寻常不过的函数调用背后，系统内核帮助我们做了很多事情。下面，我打算通过反汇编的方法，从汇编语言的层次来阐释函数调用的实现。 基础知识先回顾几个概念，这样可以帮助我们顺利地理解后面实验的结果。 调用函数(caller)和被调函数(callee)调用函数(caller)向被调函数(">
+<meta property="og:image" content="https://chendotjs.me/2017/04/28/从汇编角度看待函数调用/callstack.png">
+<meta property="og:updated_time" content="2017-07-27T06:26:24.828Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="从汇编角度看待函数调用">
+<meta name="twitter:description" content="引言函数调用对于程序员而言，就像每天吃饭睡觉一样普通寻常。几乎每种编程语言都会提供函数定义、函数调用的功能。但是，在看起来寻常不过的函数调用背后，系统内核帮助我们做了很多事情。下面，我打算通过反汇编的方法，从汇编语言的层次来阐释函数调用的实现。 基础知识先回顾几个概念，这样可以帮助我们顺利地理解后面实验的结果。 调用函数(caller)和被调函数(callee)调用函数(caller)向被调函数(">
+<meta name="twitter:image" content="https://chendotjs.me/2017/04/28/从汇编角度看待函数调用/callstack.png">
+
+    
+    <link rel="alternative" href="/atom.xml" title="修竹幽晴堂" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/cman.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/cman.png">
+    
+    <link rel="stylesheet" href="/css/style.css">
+    <link href='https://cdn.webfont.youziku.com/webfonts/nomal/107517/46953/59ac0d56f629d80bf07d56a1.css' rel='stylesheet' type='text/css' />
+    <link href='https://fonts.font.im/css?family=Marck+Script' rel='stylesheet' type='text/css'>
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/cman.png" alt="修竹幽晴堂" title="修竹幽晴堂"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name" style="font-family:yuweifced3d62f61a3fd"><a href="/" title="修竹幽晴堂">修竹幽晴堂</a></h1>
+				<h2 class="blog-motto" style="font-family: 'Marck Script', cursive;">Done is better than perfect!</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
+						<input type="hidden" name="q" value="site:chendotjs.me">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/04/28/从汇编角度看待函数调用/" title="从汇编角度看待函数调用" itemprop="url">从汇编角度看待函数调用</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="chendotjs" target="_blank" itemprop="author">chendotjs</a>
+		
+  <p class="article-time">
+    <time datetime="2017-04-27T16:22:56.000Z" itemprop="datePublished"> Published 2017-04-28</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">Contents</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#引言"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#基础知识"><span class="toc-number">2.</span> <span class="toc-text">基础知识</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#调用函数-caller-和被调函数-callee"><span class="toc-number">2.1.</span> <span class="toc-text">调用函数(caller)和被调函数(callee)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#高地址和低地址"><span class="toc-number">2.2.</span> <span class="toc-text">高地址和低地址</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#栈-stack"><span class="toc-number">2.3.</span> <span class="toc-text">栈(stack)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#寄存器-register"><span class="toc-number">3.</span> <span class="toc-text">寄存器(register)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#函数调用样例"><span class="toc-number">4.</span> <span class="toc-text">函数调用样例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#利用gdb进行反汇编分析"><span class="toc-number">5.</span> <span class="toc-text">利用gdb进行反汇编分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#启动"><span class="toc-number">5.1.</span> <span class="toc-text">启动</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#main函数"><span class="toc-number">5.2.</span> <span class="toc-text">main函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#add函数"><span class="toc-number">5.3.</span> <span class="toc-text">add函数</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考："><span class="toc-number">6.</span> <span class="toc-text">参考：</span></a></li></ol>
+		
+		</div>
+		
+		<h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>函数调用对于程序员而言，就像每天吃饭睡觉一样普通寻常。几乎每种编程语言都会提供函数定义、函数调用的功能。但是，在看起来寻常不过的函数调用背后，系统内核帮助我们做了很多事情。下面，我打算通过反汇编的方法，从汇编语言的层次来阐释函数调用的实现。</p>
+<h2 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h2><p>先回顾几个概念，这样可以帮助我们顺利地理解后面实验的结果。</p>
+<h3 id="调用函数-caller-和被调函数-callee"><a href="#调用函数-caller-和被调函数-callee" class="headerlink" title="调用函数(caller)和被调函数(callee)"></a>调用函数(caller)和被调函数(callee)</h3><p>调用函数(caller)向被调函数(callee)传入参数，被调函数(callee)返回结果。首先要明确这两个名词，免得被下文的表述弄混淆。</p>
+<h3 id="高地址和低地址"><a href="#高地址和低地址" class="headerlink" title="高地址和低地址"></a>高地址和低地址</h3><p>高地址和低地址是相对的，我们通常用16进制数来表示一个内存地址。比如相比于<code>0x00</code>，<code>0x04</code>数值上比<code>0x00</code>大，所以<code>0x04</code>称为高地址， <code>0x00</code>称为低地址。</p>
+<h3 id="栈-stack"><a href="#栈-stack" class="headerlink" title="栈(stack)"></a>栈(stack)</h3><p>栈是最常用的数据结构之一，可以进行push/pop，且只允许在一端进行操作，后进先出(LIFO)。但就是这个最简单的数据结构，构成了计算机中程序执行的基础，用于内核中程序执行的栈具有以下特点：</p>
+<ul>
+<li>每一个进程在用户态对应一个调用栈结构(call stack)</li>
+<li>程序中每一个未完成运行的函数对应一个栈帧(stack frame)，栈帧中保存函数局部变量、传递给被调函数的参数等信息</li>
+<li>栈底对应高地址，栈顶对应低地址，栈由内存高地址向低地址生长</li>
+</ul>
+<p>一个进程的调用栈图示如下：</p>
+<p><img src="/2017/04/28/从汇编角度看待函数调用/callstack.png" alt=""></p>
+<h2 id="寄存器-register"><a href="#寄存器-register" class="headerlink" title="寄存器(register)"></a>寄存器(register)</h2><p>寄存器位于CPU内部，用于存放程序执行中用到的数据和指令，CPU从寄存器中取数据，相比从内存中取快得多。</p>
+<p>寄存器又分<strong>通用寄存器</strong>和<strong>特殊寄存器</strong>。</p>
+<p>通用寄存器有ax/bx/cx/dx/di/si，尽管这些寄存器在大多数指令中可以任意选用，但也有一些规定某些指令只能用某个特定“通用”寄存器，例如函数返回时需将返回值mov到ax寄存器中；特殊寄存器有bp/sp/ip等，特殊寄存器均有特定用途，例如sp寄存器用于存放以上提到的栈帧的栈顶地址，除此之外，不用于存放局部变量，或其他用途。</p>
+<p>对于有特定用途的几个寄存器，简要介绍如下：</p>
+<ul>
+<li>ax(accumulator): 可用于存放函数返回值</li>
+<li>bp(base pointer): 用于存放执行中的函数对应的栈帧的栈底地址</li>
+<li>sp(stack poinger): 用于存放执行中的函数对应的栈帧的栈顶地址</li>
+<li>ip(instruction pointer): 指向当前执行指令的下一条指令</li>
+</ul>
+<p>不同架构的CPU，寄存器名称被添以不同前缀以指示寄存器的大小。例如对于x86架构，字母“e”用作名称前缀，指示各寄存器大小为32位；对于x86_64寄存器，字母“r”用作名称前缀，指示各寄存器大小为64位。</p>
+<p>所以我们学过了Intel 8086汇编之后，应该可以触类旁通，很多时候只是寄存器的名字发生了变化，大体的思想还是共通的。</p>
+<h2 id="函数调用样例"><a href="#函数调用样例" class="headerlink" title="函数调用样例"></a>函数调用样例</h2><p>在掌握了基础知识之后，我们选取下面这个简单的例子进行分析。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//call_example.c</span></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> a, <span class="keyword">int</span> b)</span> </span>&#123; <span class="keyword">return</span> a + b; &#125;</div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</div><div class="line">  add(<span class="number">2</span>, <span class="number">5</span>);</div><div class="line">  <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>通过<code>gcc call_example.c -g -o call_example</code>命令得到可执行文件<code>call_example</code>。</p>
+<p>加上参数-g是为了让目标文件<code>call_example</code>包含符号表等调试信息。</p>
+<p>我们可以用<code>objdump -D -M att ./call_example</code>命令先来对<code>call_example</code>进行反汇编看看结果。截取了部分结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">00000000004004a6 &lt;add&gt;:</div><div class="line">  4004a6:	55                   	push   %rbp</div><div class="line">  4004a7:	48 89 e5             	mov    %rsp,%rbp</div><div class="line">  4004aa:	89 7d fc             	mov    %edi,-0x4(%rbp)</div><div class="line">  4004ad:	89 75 f8             	mov    %esi,-0x8(%rbp)</div><div class="line">  4004b0:	8b 55 fc             	mov    -0x4(%rbp),%edx</div><div class="line">  4004b3:	8b 45 f8             	mov    -0x8(%rbp),%eax</div><div class="line">  4004b6:	01 d0                	add    %edx,%eax</div><div class="line">  4004b8:	5d                   	pop    %rbp</div><div class="line">  4004b9:	c3                   	retq   </div><div class="line"></div><div class="line">00000000004004ba &lt;main&gt;:</div><div class="line">  4004ba:	55                   	push   %rbp</div><div class="line">  4004bb:	48 89 e5             	mov    %rsp,%rbp</div><div class="line">  4004be:	be 05 00 00 00       	mov    $0x5,%esi</div><div class="line">  4004c3:	bf 02 00 00 00       	mov    $0x2,%edi</div><div class="line">  4004c8:	e8 d9 ff ff ff       	callq  4004a6 &lt;add&gt;</div><div class="line">  4004cd:	b8 00 00 00 00       	mov    $0x0,%eax</div><div class="line">  4004d2:	5d                   	pop    %rbp</div><div class="line">  4004d3:	c3                   	retq   </div><div class="line">  4004d4:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)</div><div class="line">  4004db:	00 00 00</div><div class="line">  4004de:	66 90                	xchg   %ax,%ax</div></pre></td></tr></table></figure>
+<p><code>objdump</code> 固然是一个好工具，但是有时候看起来不是那么直观，下面我着重介绍用gdb进行分析反汇编分析。</p>
+<h2 id="利用gdb进行反汇编分析"><a href="#利用gdb进行反汇编分析" class="headerlink" title="利用gdb进行反汇编分析"></a>利用gdb进行反汇编分析</h2><p>我们利用<code>gdb</code>跟踪main-&gt;add的过程。</p>
+<h3 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h3><p>利用<code>gdb</code>载入可执行程序<code>call_example</code></p>
+<pre><code>$ gdb ./call_example
+GNU gdb (GDB) 7.12.1
+Reading symbols from ./call_example...done.
+(gdb) start
+Temporary breakpoint 1 at 0x4004be: file call_example.c, line 3.
+Starting program: /tmp/call_example
+
+Temporary breakpoint 1, main () at call_example.c:3
+3         add(2, 5);
+(gdb)
+</code></pre><p>start命令用于拉起被调试程序，并执行至main函数的开始位置，程序被执行之后与一个用户态的调用栈关联。</p>
+<h3 id="main函数"><a href="#main函数" class="headerlink" title="main函数"></a>main函数</h3><p>现在程序停止在main函数，用disassemble命令显示当前函数的汇编信息：</p>
+<pre><code>(gdb) disassemble /mr
+Dump of assembler code for function main:
+2       int main(void) {
+   0x00000000004004ba &lt;+0&gt;:     55      push   %rbp
+   0x00000000004004bb &lt;+1&gt;:     48 89 e5        mov    %rsp,%rbp
+
+3         add(2, 5);
+=&gt; 0x00000000004004be &lt;+4&gt;:     be 05 00 00 00  mov    $0x5,%esi
+   0x00000000004004c3 &lt;+9&gt;:     bf 02 00 00 00  mov    $0x2,%edi
+   0x00000000004004c8 &lt;+14&gt;:    e8 d9 ff ff ff  callq  0x4004a6 &lt;add&gt;
+
+4         return 0;
+   0x00000000004004cd &lt;+19&gt;:    b8 00 00 00 00  mov    $0x0,%eax
+
+5       }
+   0x00000000004004d2 &lt;+24&gt;:    5d      pop    %rbp
+   0x00000000004004d3 &lt;+25&gt;:    c3      retq   
+
+End of assembler dump.
+(gdb)
+</code></pre><p>disassemble命令的/m指示显示汇编指令的同时，显示相应的程序源码；/r指示显示十六进制的计算机指令(raw instruction)。</p>
+<p>以上输出每行指示一条汇编指令，除程序源码外共有四列，各列含义为：</p>
+<ol>
+<li>0x00000000004004ba: 该指令对应的虚拟内存地址</li>
+<li>&lt;+0&gt;: 该指令的虚拟内存地址偏移量</li>
+<li>55: 该指令对应的计算机指令</li>
+<li>push %rbp: 汇编指令</li>
+</ol>
+<p>回忆一下我们用汇编语言写调用函数的代码时，第一步是“保护现场”，也就是：</p>
+<ol>
+<li>将调用函数的栈帧栈底地址入栈，即将bp寄存器的值压入调用栈中</li>
+<li>建立新的栈帧，将被调函数的栈帧栈底地址放入bp寄存器中，其值为调用函数的栈顶地址sp</li>
+</ol>
+<p>以下两条指令即完成上面动作：</p>
+<pre><code>push %rbp
+mov  %rsp, %rbp
+</code></pre><p>通过<code>objdump</code>和<code>gdb</code>的结果，我们发现main函数也包含了这两条指令，这是因为main函数也会被<code>__libc_start_main</code>所调用，这里不多加赘述。</p>
+<p>main调用add函数，两个参数传入通用寄存器中：</p>
+<pre><code>mov    $0x5,%esi
+mov    $0x2,%edi
+</code></pre><p>咦？汇编语言课上老师不是教过传递的参数会被压入栈中么？</p>
+<p>其实，x86和x86_64定义了不同的函数调用规约(calling convention)。x86_64采用将参数传入通用寄存器的方式，x86则将参数压入调用栈中。我们利用<code>gcc -S -m32 call_example.c</code>来直接生成x86平台的汇编代码，找到传递参数那段代码：</p>
+<pre><code>pushl    $5
+pushl    $2
+call    add
+</code></pre><p>原来如此！</p>
+<p>准备完参数之后，就可以放心大胆的将控制权交给add函数了，callq指令完成这里的交接任务：</p>
+<pre><code>0x00000000004004c8 &lt;+14&gt;:    e8 d9 ff ff ff  callq  0x4004a6 &lt;add&gt;
+</code></pre><p>callq指令会在调用函数的时候将下一条指令的地址push到stack上，当本次调用结束后，retq指令会跳转到被保存的返回地址处使程序继续执行。</p>
+<p>本次callq指令，完成了两个任务：</p>
+<ol>
+<li>将调用函数(main)中的下一条指令(这里为0x00000000004004cd)入栈，被调函数返回后将取这条指令继续执行</li>
+<li>修改指令指针寄存器rip的值，使其指向被调函数(add)的执行位置，这里为0x00000000004004a6</li>
+</ol>
+<p>我们可以用<code>stepi</code>指令进行指令级别的操作，相比于一般调试时候按行调试的粒度会更精细。</p>
+<pre><code>(gdb) stepi 3
+add (a=0, b=4195248) at call_example.c:1
+1       int add(int a, int b) { return a + b; }
+(gdb) disassemble /mr
+Dump of assembler code for function add:
+1       int add(int a, int b) { return a + b; }
+=&gt; 0x00000000004004a6 &lt;+0&gt;:     55      push   %rbp
+   0x00000000004004a7 &lt;+1&gt;:     48 89 e5        mov    %rsp,%rbp
+   0x00000000004004aa &lt;+4&gt;:     89 7d fc        mov    %edi,-0x4(%rbp)
+   0x00000000004004ad &lt;+7&gt;:     89 75 f8        mov    %esi,-0x8(%rbp)
+   0x00000000004004b0 &lt;+10&gt;:    8b 55 fc        mov    -0x4(%rbp),%edx
+   0x00000000004004b3 &lt;+13&gt;:    8b 45 f8        mov    -0x8(%rbp),%eax
+   0x00000000004004b6 &lt;+16&gt;:    01 d0   add    %edx,%eax
+   0x00000000004004b8 &lt;+18&gt;:    5d      pop    %rbp
+   0x00000000004004b9 &lt;+19&gt;:    c3      retq   
+
+End of assembler dump.
+(gdb)
+</code></pre><p>至此，main函数的执行到此就暂时告一段落了，我们进入了add函数的新篇章。</p>
+<h3 id="add函数"><a href="#add函数" class="headerlink" title="add函数"></a>add函数</h3><p>add函数也是一样的套路，头两条指令先建立自己的栈帧，然后调用add指令计算结果，结果存放在eax寄存器中。计算完之后，需要“恢复现场”：</p>
+<pre><code>0x00000000004004b8 &lt;+18&gt;:    5d      pop    %rbp
+</code></pre><p>因为此例比较特殊，add函数没有包含局部变量，main和add函数的栈顶恰好相同，所以忽略了对栈顶rsp的恢复。</p>
+<p>通常，完整的“恢复现场”需要以下两条指令：</p>
+<pre><code>mov %rbp, %rsp
+pop %rbp
+</code></pre><h2 id="参考："><a href="#参考：" class="headerlink" title="参考："></a>参考：</h2><p><a href="https://web.stanford.edu/class/cs107/guide_x86-64.html" target="_blank" rel="external">https://web.stanford.edu/class/cs107/guide_x86-64.html</a></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/c语言/">c语言</a><a href="/tags/汇编/">汇编</a><a href="/tags/反汇编/">反汇编</a><a href="/tags/gdb/">gdb</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="https://chendotjs.me/2017/04/28/从汇编角度看待函数调用/" data-title="从汇编角度看待函数调用 | 修竹幽晴堂" data-tsina="null" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2017/05/04/缓冲区溢出初探/" title="缓冲区溢出初探">
+  <strong>上一篇：</strong><br/>
+  <span>
+  缓冲区溢出初探</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2017/04/07/chroot环境下使用图形界面/"  title="chroot环境下使用图形界面">
+ <strong>下一篇：</strong><br/> 
+ <span>chroot环境下使用图形界面
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#引言"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#基础知识"><span class="toc-number">2.</span> <span class="toc-text">基础知识</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#调用函数-caller-和被调函数-callee"><span class="toc-number">2.1.</span> <span class="toc-text">调用函数(caller)和被调函数(callee)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#高地址和低地址"><span class="toc-number">2.2.</span> <span class="toc-text">高地址和低地址</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#栈-stack"><span class="toc-number">2.3.</span> <span class="toc-text">栈(stack)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#寄存器-register"><span class="toc-number">3.</span> <span class="toc-text">寄存器(register)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#函数调用样例"><span class="toc-number">4.</span> <span class="toc-text">函数调用样例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#利用gdb进行反汇编分析"><span class="toc-number">5.</span> <span class="toc-text">利用gdb进行反汇编分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#启动"><span class="toc-number">5.1.</span> <span class="toc-text">启动</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#main函数"><span class="toc-number">5.2.</span> <span class="toc-text">main函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#add函数"><span class="toc-number">5.3.</span> <span class="toc-text">add函数</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考："><span class="toc-number">6.</span> <span class="toc-text">参考：</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+
+  
+<div class="github-card">
+<p class="asidetitle">Github Card</p>
+<div class="github-card" data-github="chendotjs" data-width="220" data-height="119" data-theme="medium">
+<script type="text/javascript" src="//cdn.jsdelivr.net/github-cards/latest/widget.js" ></script>
+</div>
+  </div>
+
+
+
+  
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/c语言/" title="c语言">c语言<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/linux/" title="linux">linux<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/汇编/" title="汇编">汇编<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/反汇编/" title="反汇编">反汇编<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/gdb/" title="gdb">gdb<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/SDL2/" title="SDL2">SDL2<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/摄像头/" title="摄像头">摄像头<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/CI，-DevOps/" title="CI， DevOps">CI， DevOps<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/配置/" title="配置">配置<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/v4l2/" title="v4l2">v4l2<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Docker/" title="Docker">Docker<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/总结/" title="总结">总结<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/v8/" title="v8">v8<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/编译/" title="编译">编译<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/chrome/" title="chrome">chrome<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/hello-world/" title="hello world">hello world<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/javascript/" title="javascript">javascript<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/算法/" title="算法">算法<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/缓冲区溢出/" title="缓冲区溢出">缓冲区溢出<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/数据挖掘/" title="数据挖掘">数据挖掘<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://coolshell.cn" target="_blank" title="酷 壳">酷 壳</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://xiaoysec.github.io/" target="_blank" title="西土城马戏团">西土城马戏团</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="https://news.ycombinator.com/" target="_blank" title="Hacker News">Hacker News</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+<div class="linkslist">
+	<a href="http://s11.flagcounter.com/more/cb"><img src="http://s11.flagcounter.com/count2/cb/bg_FFFFFF/txt_000000/border_CCCCCC/columns_2/maxflags_10/viewers_0/labels_0/pageviews_0/flags_0/percent_0/" alt="Flag Counter" border="0"></a>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	
+	<section class="info">
+		<p> A foo walks into a bar, <br/>
+			and says &quot;Hello Wold !&quot;</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		<a href="https://github.com/chendotjs" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		<a href="http://www.zhihu.com/people/chen-ya-qi-93" target="_blank" class="icon-zhihu" title="知乎"></a>
+		
+		
+		
+		<a href="mailto:chendotjs@gmail.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a>2017
+		
+		<a href="/about" target="_blank" title="chendotjs">@chendotjs</a>
+		
+
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'chendotjsme';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?beac4dd688349f82bebe8f32bb4c52db";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>
