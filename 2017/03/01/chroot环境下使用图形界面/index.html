@@ -4,34 +4,51 @@
 <head>
   <meta charset="UTF-8">
   
-    <title>chroot环境下使用图形界面 | 修竹幽晴堂</title>
+    <title>chroot环境下使用图形界面 | Jimmy &amp; ice</title>
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
     
     <meta name="author" content="chendotjs">
     
 
     
-    <meta name="description" content="引子话说今日在我的渣机上面用python跑一个聚类算法，发现对于1k大小的数据集竟然能明显感受到延迟(原谅我那11年产的amd cpu)。  而我的目标是10w大小的数据集，内心的写照：  这让人心慌 ——李志《春末的南方城市》  背景忽然想起实验室有一台高性能服务器，师兄为了稳(tou)定(lan)选择安装了Debian系统,，这给我们安装最新的软件包制造了很大的麻烦，谁没事想一个一个手动安装。">
-<meta name="keywords" content="linux,DevOps">
+    <meta name="description" content="引子话说今日在我的渣机上面用python跑一个聚类算法，发现对于1k大小的数据集竟然能明显感受到延迟(原谅我那11年产的amd cpu)。
+
+而我的目标是10w大小的数据集，内心的写照：
+
+这让人心慌 ——李志《春末的南方城市》
+
+背景忽然想起实验室有一台高性能服务器，师兄为了稳(tou)定(lan)选择安装了Debian系统,，这给我们安装最新的软件包制造了很大的麻烦，谁没事想一个一个手动安装。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="chroot环境下使用图形界面">
-<meta property="og:url" content="https://chendotjs.me/2017/04/07/chroot环境下使用图形界面/index.html">
-<meta property="og:site_name" content="修竹幽晴堂">
-<meta property="og:description" content="引子话说今日在我的渣机上面用python跑一个聚类算法，发现对于1k大小的数据集竟然能明显感受到延迟(原谅我那11年产的amd cpu)。  而我的目标是10w大小的数据集，内心的写照：  这让人心慌 ——李志《春末的南方城市》  背景忽然想起实验室有一台高性能服务器，师兄为了稳(tou)定(lan)选择安装了Debian系统,，这给我们安装最新的软件包制造了很大的麻烦，谁没事想一个一个手动安装。">
-<meta property="og:image" content="https://chendotjs.me/2017/04/07/chroot环境下使用图形界面/ZFqJaIk8.jpg">
-<meta property="og:image" content="https://chendotjs.me/2017/04/07/chroot环境下使用图形界面/ZKLqMaeE.jpg">
-<meta property="og:image" content="https://chendotjs.me/2017/04/07/chroot环境下使用图形界面/xeon-htop.png">
-<meta property="og:image" content="https://chendotjs.me/2017/04/07/chroot环境下使用图形界面/chroot-arch.png">
-<meta property="og:image" content="https://chendotjs.me/2017/04/07/chroot环境下使用图形界面/display.png">
-<meta property="og:image" content="https://chendotjs.me/2017/04/07/chroot环境下使用图形界面/result.png">
-<meta property="og:updated_time" content="2017-11-27T06:51:36.117Z">
+<meta property="og:url" content="http://chendotjs.me/2017/03/01/chroot环境下使用图形界面/index.html">
+<meta property="og:site_name" content="Jimmy & ice">
+<meta property="og:description" content="引子话说今日在我的渣机上面用python跑一个聚类算法，发现对于1k大小的数据集竟然能明显感受到延迟(原谅我那11年产的amd cpu)。
+
+而我的目标是10w大小的数据集，内心的写照：
+
+这让人心慌 ——李志《春末的南方城市》
+
+背景忽然想起实验室有一台高性能服务器，师兄为了稳(tou)定(lan)选择安装了Debian系统,，这给我们安装最新的软件包制造了很大的麻烦，谁没事想一个一个手动安装。">
+<meta property="og:image" content="http://chendotjs.me/2017/03/01/chroot环境下使用图形界面/ZFqJaIk8.jpg">
+<meta property="og:image" content="http://chendotjs.me/2017/03/01/chroot环境下使用图形界面/ZKLqMaeE.jpg">
+<meta property="og:image" content="http://chendotjs.me/2017/03/01/chroot环境下使用图形界面/xeon-htop.png">
+<meta property="og:image" content="http://chendotjs.me/2017/03/01/chroot环境下使用图形界面/chroot-arch.png">
+<meta property="og:image" content="http://chendotjs.me/2017/03/01/chroot环境下使用图形界面/display.png">
+<meta property="og:image" content="http://chendotjs.me/2017/03/01/chroot环境下使用图形界面/result.png">
+<meta property="og:updated_time" content="2017-04-06T14:35:22.270Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="chroot环境下使用图形界面">
-<meta name="twitter:description" content="引子话说今日在我的渣机上面用python跑一个聚类算法，发现对于1k大小的数据集竟然能明显感受到延迟(原谅我那11年产的amd cpu)。  而我的目标是10w大小的数据集，内心的写照：  这让人心慌 ——李志《春末的南方城市》  背景忽然想起实验室有一台高性能服务器，师兄为了稳(tou)定(lan)选择安装了Debian系统,，这给我们安装最新的软件包制造了很大的麻烦，谁没事想一个一个手动安装。">
-<meta name="twitter:image" content="https://chendotjs.me/2017/04/07/chroot环境下使用图形界面/ZFqJaIk8.jpg">
+<meta name="twitter:description" content="引子话说今日在我的渣机上面用python跑一个聚类算法，发现对于1k大小的数据集竟然能明显感受到延迟(原谅我那11年产的amd cpu)。
+
+而我的目标是10w大小的数据集，内心的写照：
+
+这让人心慌 ——李志《春末的南方城市》
+
+背景忽然想起实验室有一台高性能服务器，师兄为了稳(tou)定(lan)选择安装了Debian系统,，这给我们安装最新的软件包制造了很大的麻烦，谁没事想一个一个手动安装。">
+<meta name="twitter:image" content="http://chendotjs.me/2017/03/01/chroot环境下使用图形界面/ZFqJaIk8.jpg">
 
     
-    <link rel="alternative" href="/atom.xml" title="修竹幽晴堂" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="Jimmy &amp; ice" type="application/atom+xml">
     
     
     <link rel="icon" href="/img/favicon.ico">
@@ -41,8 +58,6 @@
     <link rel="apple-touch-icon-precomposed" href="/img/cman.png">
     
     <link rel="stylesheet" href="/css/style.css">
-    <link href='https://cdn.webfont.youziku.com/webfonts/nomal/107517/46953/59ac0d56f629d80bf07d56a1.css' rel='stylesheet' type='text/css' />
-    <link href='https://fonts.font.im/css?family=Marck+Script' rel='stylesheet' type='text/css'>
 </head>
 
   <body>
@@ -51,12 +66,12 @@
 <div>
 		
 			<div id="imglogo">
-				<a href="/"><img src="/img/cman.png" alt="修竹幽晴堂" title="修竹幽晴堂"/></a>
+				<a href="/"><img src="/img/cman.png" alt="Jimmy &amp; ice" title="Jimmy &amp; ice"/></a>
 			</div>
 			
 			<div id="textlogo">
-				<h1 class="site-name" style="font-family:yuweifced3d62f61a3fd"><a href="/" title="修竹幽晴堂">修竹幽晴堂</a></h1>
-				<h2 class="blog-motto" style="font-family: 'Marck Script', cursive;">Done is better than perfect!</h2>
+				<h1 class="site-name"><a href="/" title="Jimmy &amp; ice">Jimmy &amp; ice</a></h1>
+				<h2 class="blog-motto"></h2>
 			</div>
 			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
 			</a></div>
@@ -80,9 +95,8 @@
 					
 					</li>
 				</ul>
-			</nav>
+			</nav>			
 </div>
-
     </header>
     <div id="container">
       <div id="main" class="post" itemscope itemprop="blogPost">
@@ -91,14 +105,14 @@
 		<header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2017/04/07/chroot环境下使用图形界面/" title="chroot环境下使用图形界面" itemprop="url">chroot环境下使用图形界面</a>
+      <a href="/2017/03/01/chroot环境下使用图形界面/" title="chroot环境下使用图形界面" itemprop="url">chroot环境下使用图形界面</a>
   </h1>
   <p class="article-author">By
        
 		<a href="/about" title="chendotjs" target="_blank" itemprop="author">chendotjs</a>
 		
   <p class="article-time">
-    <time datetime="2017-04-07T15:10:33.000Z" itemprop="datePublished"> Published 2017-04-07</time>
+    <time datetime="2017-03-01T15:10:33.000Z" itemprop="datePublished"> Published 2017-03-01</time>
     
   </p>
 </header>
@@ -112,24 +126,24 @@
 		</div>
 		
 		<h2 id="引子"><a href="#引子" class="headerlink" title="引子"></a>引子</h2><p>话说今日在我的渣机上面用python跑一个聚类算法，发现对于1k大小的数据集竟然能明显感受到延迟(原谅我那11年产的amd cpu)。</p>
-<p><img src="/2017/04/07/chroot环境下使用图形界面/ZFqJaIk8.jpg" alt=""></p>
+<p><img src="/2017/03/01/chroot环境下使用图形界面/ZFqJaIk8.jpg" alt=""></p>
 <p>而我的目标是10w大小的数据集，内心的写照：</p>
 <blockquote>
 <p>这让人心慌 ——李志《春末的南方城市》</p>
 </blockquote>
 <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>忽然想起实验室有一台高性能服务器，师兄为了稳(tou)定(lan)选择安装了Debian系统,，这给我们安装最新的软件包制造了很大的麻烦，谁没事想一个一个手动安装。</p>
-<p><img src="/2017/04/07/chroot环境下使用图形界面/ZKLqMaeE.jpg" alt=""></p>
-<p>放一张图感受一下，40核心，64G内存，配置还是说得过去的。<br><img src="/2017/04/07/chroot环境下使用图形界面/xeon-htop.png" alt=""></p>
+<p><img src="/2017/03/01/chroot环境下使用图形界面/ZKLqMaeE.jpg" alt=""></p>
+<p>放一张图感受一下，40核心，64G内存，配置还是说得过去的。<br><img src="/2017/03/01/chroot环境下使用图形界面/xeon-htop.png" alt=""></p>
 <p>但是万恶的资本主义难不倒我们，我在家目录下面搭了个Archlinux的chroot环境，这样就可以方便地利用pacman安装很多最新的软件包。</p>
-<p><img src="/2017/04/07/chroot环境下使用图形界面/chroot-arch.png" alt=""></p>
+<p><img src="/2017/03/01/chroot环境下使用图形界面/chroot-arch.png" alt=""></p>
 <p>哟西，这样的话我们就可以放心大胆的对数据集进行训练了，可是另一个问题冒出来了，我需要对数据进行可视化操作，光是利用终端看不到matplotlib绘制出来的训练结果啊！！！</p>
 <h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><p>好在X Window设计的是如此先进，可以利用CS架构来设置chroot环境下Archlinux用来显示的的”screen”，只需要设置<code>$DISPLAY</code>环境变量就可以指定”screen”。</p>
 <h3 id="步骤1"><a href="#步骤1" class="headerlink" title="步骤1"></a>步骤1</h3><p>宿主机（Debian）执行<code>xhost +</code>，这一步让所有X Client都能建立连接</p>
-<h3 id="步骤2"><a href="#步骤2" class="headerlink" title="步骤2"></a>步骤2</h3><p>宿主机（Debian）执行<code>echo $DISPLAY</code>，比如我这步得到$DISPLAY环境变量的值为<code>:9.0</code><br><img src="/2017/04/07/chroot环境下使用图形界面/display.png" alt="$DISPLAY环境变量"></p>
-<h3 id="步骤3"><a href="#步骤3" class="headerlink" title="步骤3"></a>步骤3</h3><p>在chroot的Archlinux下要指定和宿主机共享同一个screen，所以我们执行<code>export $DISPLAY=:9.0</code></p>
-<h3 id="步骤4"><a href="#步骤4" class="headerlink" title="步骤4"></a>步骤4</h3><p>在chroot的Archlinux的里面执行<code>xterm</code>命令,就可以看到在图形界面中出现了<code>xterm</code>终端。</p>
+<h3 id="步骤2"><a href="#步骤2" class="headerlink" title="步骤2"></a>步骤2</h3><p>宿主机（Debian）执行<code>echo $DISPLAY</code>，比如我这步得到$DISPLAY环境变量的值为<code>:9.0</code><br><img src="/2017/03/01/chroot环境下使用图形界面/display.png" alt="$DISPLAY环境变量"></p>
+<h3 id="步骤3"><a href="#步骤3" class="headerlink" title="步骤3"></a>步骤3</h3><p>在chroot的Archlinux下要指定和宿主机一样的screen，执行<code>export $DISPLAY=:9.0</code></p>
+<h3 id="步骤4"><a href="#步骤4" class="headerlink" title="步骤4"></a>步骤4</h3><p>在chroot的Archlinux的里面执行<code>xterm</code>,就可以看到在图形界面中出现了<code>xterm</code>终端。</p>
 <p>最后放一张效果图：</p>
-<p><img src="/2017/04/07/chroot环境下使用图形界面/result.png" alt=""></p>
+<p><img src="/2017/03/01/chroot环境下使用图形界面/result.png" alt=""></p>
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="http://wiki.ubuntu.org.cn/%E7%90%86%E8%A7%A3_Xwindow" target="_blank" rel="external">http://wiki.ubuntu.org.cn/%E7%90%86%E8%A7%A3_Xwindow</a><br><a href="http://askubuntu.com/questions/432255/what-is-display-environment-variable" target="_blank" rel="external">http://askubuntu.com/questions/432255/what-is-display-environment-variable</a></p>
   
 	</div>
@@ -139,7 +153,7 @@
 
   <div class="article-tags">
   
-  <span></span> <a href="/tags/linux/">linux</a><a href="/tags/DevOps/">DevOps</a>
+  <span></span> <a href="/tags/linux/">linux</a><a href="/tags/配置/">配置</a>
   </div>
 
 </div>
@@ -148,7 +162,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="https://chendotjs.me/2017/04/07/chroot环境下使用图形界面/" data-title="chroot环境下使用图形界面 | 修竹幽晴堂" data-tsina="null" class="share clearfix">
+	  <div data-url="http://chendotjs.me/2017/03/01/chroot环境下使用图形界面/" data-title="chroot环境下使用图形界面 | Jimmy &amp; ice" data-tsina="null" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -159,27 +173,6 @@
    	       
 	</article>
 	
-<nav class="article-nav clearfix">
- 
- <div class="prev" >
- <a href="/2017/04/28/从汇编角度看待函数调用/" title="从汇编角度看待函数调用">
-  <strong>上一篇：</strong><br/>
-  <span>
-  从汇编角度看待函数调用</span>
-</a>
-</div>
-
-
-<div class="next">
-<a href="/2017/04/05/利用关联挖掘算法获得分类模型/"  title="利用关联挖掘算法获得分类模型">
- <strong>下一篇：</strong><br/> 
- <span>利用关联挖掘算法获得分类模型
-</span>
-</a>
-</div>
-
-</nav>
-
 	
 
 <section id="comments" class="comment">
@@ -220,83 +213,15 @@
 		<ul class="clearfix">
 		
 			
-				<li><a href="/tags/c语言/" title="c语言">c语言<sup>5</sup></a></li>
+				<li><a href="/tags/linux/" title="linux">linux<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/linux/" title="linux">linux<sup>3</sup></a></li>
+				<li><a href="/tags/配置/" title="配置">配置<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/gdb/" title="gdb">gdb<sup>2</sup></a></li>
-			
 		
-			
-				<li><a href="/tags/反汇编/" title="反汇编">反汇编<sup>2</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/DevOps/" title="DevOps">DevOps<sup>2</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/汇编/" title="汇编">汇编<sup>2</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/缓冲区溢出/" title="缓冲区溢出">缓冲区溢出<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/SDL2/" title="SDL2">SDL2<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/摄像头/" title="摄像头">摄像头<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/数据挖掘/" title="数据挖掘">数据挖掘<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/总结/" title="总结">总结<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/CI/" title="CI">CI<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/算法/" title="算法">算法<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Docker/" title="Docker">Docker<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/v4l2/" title="v4l2">v4l2<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/v8/" title="v8">v8<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/编译/" title="编译">编译<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/chrome/" title="chrome">chrome<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/hello-world/" title="hello world">hello world<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/javascript/" title="javascript">javascript<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -315,12 +240,6 @@
         
           <li>
             
-            	<a href="https://xiaoysec.github.io/" target="_blank" title="西土城马戏团">西土城马戏团</a>
-            
-          </li>
-        
-          <li>
-            
             	<a href="https://news.ycombinator.com/" target="_blank" title="Hacker News">Hacker News</a>
             
           </li>
@@ -328,10 +247,12 @@
     </ul>
 </div>
 
-<div class="linkslist">
-	<a href="http://s11.flagcounter.com/more/cb"><img src="http://s11.flagcounter.com/count2/cb/bg_FFFFFF/txt_000000/border_CCCCCC/columns_2/maxflags_10/viewers_0/labels_0/pageviews_0/flags_0/percent_0/" alt="Flag Counter" border="0"></a>
-</div>
+  
 
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS</a>
+</div>
 
 </aside>
 </div>
@@ -556,16 +477,6 @@ $(document).ready(function(){
 <!-- Analytics Begin -->
 
 
-
-<script>
-var _hmt = _hmt || [];
-(function() {
-  var hm = document.createElement("script");
-  hm.src = "//hm.baidu.com/hm.js?beac4dd688349f82bebe8f32bb4c52db";
-  var s = document.getElementsByTagName("script")[0]; 
-  s.parentNode.insertBefore(hm, s);
-})();
-</script>
 
 
 

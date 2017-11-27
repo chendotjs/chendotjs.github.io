@@ -4,27 +4,27 @@
 <head>
   <meta charset="UTF-8">
   
-    <title>状态码定义方式的改进 | 修竹幽晴堂</title>
+    <title>如何写一个日历插件 | Jimmy &amp; ice</title>
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
     
     <meta name="author" content="chendotjs">
     
 
     
-    <meta name="description" content="引言实验室做的项目中，基本都需要和硬件设备打交道。由于硬件设备的复杂性，我们通常会对设备抽象出一个状态码，来表示设备当前的状态。举个简单的例子，对于CCD相机，可能的状态包括：是否在制冷、是否在曝光、是否在读出，我们可以用一个bit来表示一个状态。如此，我们就会定义类似下面的代码 1234#define COOL_MASK 0x01#define EXPOSURE_MASK 0x02#define">
-<meta name="keywords" content="c语言">
+    <meta name="description" content="本文由rabbitzbx提供  引言前段时间撸了个简单的日历插件，讲一讲如何获得显示的日期范围。 一个月最多 31 天，每行 7 天，所需的最大行数为 6 。基于上述分析，将显示的行数设为 6，那么显示的天数为 6 * 7 = 42 天。每行从周日开始。 计算月初为星期几（day），第一个日期为月初减去 day 天 。 1234// 这里的 firstDate 为当前月份的第一天const fi">
+<meta name="keywords" content="js,日历,rabbitzbx">
 <meta property="og:type" content="article">
-<meta property="og:title" content="状态码定义方式的改进">
-<meta property="og:url" content="https://chendotjs.me/2017/06/21/状态码定义方式的改进/index.html">
-<meta property="og:site_name" content="修竹幽晴堂">
-<meta property="og:description" content="引言实验室做的项目中，基本都需要和硬件设备打交道。由于硬件设备的复杂性，我们通常会对设备抽象出一个状态码，来表示设备当前的状态。举个简单的例子，对于CCD相机，可能的状态包括：是否在制冷、是否在曝光、是否在读出，我们可以用一个bit来表示一个状态。如此，我们就会定义类似下面的代码 1234#define COOL_MASK 0x01#define EXPOSURE_MASK 0x02#define">
-<meta property="og:updated_time" content="2017-06-21T06:55:07.312Z">
+<meta property="og:title" content="如何写一个日历插件">
+<meta property="og:url" content="http://chendotjs.me/2017/06/24/撸一个日历插件/index.html">
+<meta property="og:site_name" content="Jimmy &amp; ice">
+<meta property="og:description" content="本文由rabbitzbx提供  引言前段时间撸了个简单的日历插件，讲一讲如何获得显示的日期范围。 一个月最多 31 天，每行 7 天，所需的最大行数为 6 。基于上述分析，将显示的行数设为 6，那么显示的天数为 6 * 7 = 42 天。每行从周日开始。 计算月初为星期几（day），第一个日期为月初减去 day 天 。 1234// 这里的 firstDate 为当前月份的第一天const fi">
+<meta property="og:updated_time" content="2017-06-24T08:38:51.469Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="状态码定义方式的改进">
-<meta name="twitter:description" content="引言实验室做的项目中，基本都需要和硬件设备打交道。由于硬件设备的复杂性，我们通常会对设备抽象出一个状态码，来表示设备当前的状态。举个简单的例子，对于CCD相机，可能的状态包括：是否在制冷、是否在曝光、是否在读出，我们可以用一个bit来表示一个状态。如此，我们就会定义类似下面的代码 1234#define COOL_MASK 0x01#define EXPOSURE_MASK 0x02#define">
+<meta name="twitter:title" content="如何写一个日历插件">
+<meta name="twitter:description" content="本文由rabbitzbx提供  引言前段时间撸了个简单的日历插件，讲一讲如何获得显示的日期范围。 一个月最多 31 天，每行 7 天，所需的最大行数为 6 。基于上述分析，将显示的行数设为 6，那么显示的天数为 6 * 7 = 42 天。每行从周日开始。 计算月初为星期几（day），第一个日期为月初减去 day 天 。 1234// 这里的 firstDate 为当前月份的第一天const fi">
 
     
-    <link rel="alternative" href="/atom.xml" title="修竹幽晴堂" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="Jimmy &amp; ice" type="application/atom+xml">
     
     
     <link rel="icon" href="/img/favicon.ico">
@@ -34,8 +34,6 @@
     <link rel="apple-touch-icon-precomposed" href="/img/cman.png">
     
     <link rel="stylesheet" href="/css/style.css">
-    <link href='https://cdn.webfont.youziku.com/webfonts/nomal/107517/46953/59ac0d56f629d80bf07d56a1.css' rel='stylesheet' type='text/css' />
-    <link href='https://fonts.font.im/css?family=Marck+Script' rel='stylesheet' type='text/css'>
 </head>
 
   <body>
@@ -44,12 +42,12 @@
 <div>
 		
 			<div id="imglogo">
-				<a href="/"><img src="/img/cman.png" alt="修竹幽晴堂" title="修竹幽晴堂"/></a>
+				<a href="/"><img src="/img/cman.png" alt="Jimmy &amp; ice" title="Jimmy &amp; ice"/></a>
 			</div>
 			
 			<div id="textlogo">
-				<h1 class="site-name" style="font-family:yuweifced3d62f61a3fd"><a href="/" title="修竹幽晴堂">修竹幽晴堂</a></h1>
-				<h2 class="blog-motto" style="font-family: 'Marck Script', cursive;">Done is better than perfect!</h2>
+				<h1 class="site-name"><a href="/" title="Jimmy &amp; ice">Jimmy &amp; ice</a></h1>
+				<h2 class="blog-motto"></h2>
 			</div>
 			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
 			</a></div>
@@ -73,9 +71,8 @@
 					
 					</li>
 				</ul>
-			</nav>
+			</nav>			
 </div>
-
     </header>
     <div id="container">
       <div id="main" class="post" itemscope itemprop="blogPost">
@@ -84,14 +81,14 @@
 		<header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2017/06/21/状态码定义方式的改进/" title="状态码定义方式的改进" itemprop="url">状态码定义方式的改进</a>
+      <a href="/2017/06/24/撸一个日历插件/" title="如何写一个日历插件" itemprop="url">如何写一个日历插件</a>
   </h1>
   <p class="article-author">By
        
 		<a href="/about" title="chendotjs" target="_blank" itemprop="author">chendotjs</a>
 		
   <p class="article-time">
-    <time datetime="2017-06-21T06:11:19.000Z" itemprop="datePublished"> Published 2017-06-21</time>
+    <time datetime="2017-06-24T08:31:00.000Z" itemprop="datePublished"> Published 2017-06-24</time>
     
   </p>
 </header>
@@ -100,19 +97,18 @@
 		<div id="toc" class="toc-article">
 			<strong class="toc-title">Contents</strong>
 		
-			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#引言"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#改进"><span class="toc-number">2.</span> <span class="toc-text">改进</span></a></li></ol>
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#引言"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#代码"><span class="toc-number">2.</span> <span class="toc-text">代码</span></a></li></ol>
 		
 		</div>
 		
-		<h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>实验室做的项目中，基本都需要和硬件设备打交道。由于硬件设备的复杂性，我们通常会对设备抽象出一个状态码，来表示设备当前的状态。举个简单的例子，对于CCD相机，可能的状态包括：是否在制冷、是否在曝光、是否在读出，我们可以用一个bit来表示一个状态。如此，我们就会定义类似下面的代码</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">define</span> COOL_MASK 0x01</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> EXPOSURE_MASK 0x02</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> READOUT_MASK 0x04</span></div><div class="line"><span class="keyword">unsigned</span> <span class="keyword">int</span> state;</div></pre></td></tr></table></figure>
-<p>通过 <code>XXX_MASK</code>与<code>state</code>按位与是否大于0来判断状态，也就是 <code>(XXX_MASK &amp; state) &gt; 0</code> 。</p>
-<h2 id="改进"><a href="#改进" class="headerlink" title="改进"></a>改进</h2><p>这样定义有一个缺陷，状态量太多时候掩码会很多，并且看起来不明显（但是仍然是一个经典的方案）。</p>
-<p>先来看一个小例子，定义一个二进制数<code>a</code>的十进制数值为<code>dec(a)</code>。对于一个二进制数<code>xyz</code>(x,y,z只能为0或1，表示每一位)，我们通常计算其十进制数值的方式是<code>dec(xyz) = x*4 + y*2 + z*1</code>。</p>
-<p>但是换个角度，从移位运算的角度来看，二进制数<code>xy</code>的十进制数值可以看成<code>dec(xy) = dec(x)*2 + y</code>,二进制数<code>xyz</code>的十进制数值可以看成<code>dec(xyz) = dec(xy)*2 + z</code>。更一般化，<code>dec(x) = dec(0)*2 + x</code>。</p>
-<p>有了这个基础，我们就可以写出一点稍有技巧的代码，</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> _ )*2 <span class="comment">/* 0 */</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> X )*2+1 <span class="comment">/* 1 */</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> s (((0  <span class="comment">/* begin */</span></span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> COOL_MASK       s _ _ X</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> EXPOSURE_MASK   s _ X _</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> READOUT_MASK    s X _ _</span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"%x\n"</span>, COOL_MASK);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"%x\n"</span>, EXPOSURE_MASK);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"%x\n"</span>, READOUT_MASK);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">undef</span> _</span></div><div class="line"><span class="meta">#<span class="meta-keyword">undef</span> X</span></div><div class="line"><span class="meta">#<span class="meta-keyword">undef</span> s</span></div></pre></td></tr></table></figure>
-<p>这样看起来似乎更有些self-documenting的味道。</p>
+		<p><strong> 本文由<a href="https://github.com/rabbitzbx" target="_blank" rel="external">rabbitzbx</a>提供 </strong></p>
+<h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>前段时间撸了个简单的日历插件，讲一讲如何获得显示的日期范围。</p>
+<p>一个月最多 31 天，每行 7 天，所需的最大行数为 6 。基于上述分析，将显示的行数设为 6，那么显示的天数为 6 * 7 = 42 天。每行从周日开始。</p>
+<p>计算月初为星期几（day），第一个日期为月初减去 day 天 。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 这里的 firstDate 为当前月份的第一天</span></div><div class="line"><span class="keyword">const</span> firstDay = firstDate.getDay();</div><div class="line"><span class="comment">// 这里的 firstDate 为显示的第一个日期</span></div><div class="line">firstDate.setDate(firstDate.getDate() - firstDay);</div></pre></td></tr></table></figure>
+<p>最后一个日期为第一个日期加上 41 天。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// lastDate 为显示的最后一个日期</span></div><div class="line"><span class="comment">// 显示的日期共有 6 * 7 个，所以最后一个日期为 firstDate + 41</span></div><div class="line"><span class="keyword">const</span> lastDate = <span class="keyword">new</span> <span class="built_in">Date</span>(firstDate);</div><div class="line">lastDate.setDate(firstDate.getDate() + <span class="number">41</span>);</div></pre></td></tr></table></figure>
+<h2 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h2><p>(code 地址正在赶来的路上~)</p>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -121,7 +117,7 @@
 
   <div class="article-tags">
   
-  <span></span> <a href="/tags/c语言/">c语言</a>
+  <span></span> <a href="/tags/js/">js</a><a href="/tags/日历/">日历</a><a href="/tags/rabbitzbx/">rabbitzbx</a>
   </div>
 
 </div>
@@ -130,7 +126,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="https://chendotjs.me/2017/06/21/状态码定义方式的改进/" data-title="状态码定义方式的改进 | 修竹幽晴堂" data-tsina="null" class="share clearfix">
+	  <div data-url="http://chendotjs.me/2017/06/24/撸一个日历插件/" data-title="如何写一个日历插件 | Jimmy &amp; ice" data-tsina="null" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -143,19 +139,11 @@
 	
 <nav class="article-nav clearfix">
  
- <div class="prev" >
- <a href="/2017/06/24/v4l2配合SDL2显示摄像头视频/" title="v4l2配合SDL2显示摄像头视频">
-  <strong>上一篇：</strong><br/>
-  <span>
-  v4l2配合SDL2显示摄像头视频</span>
-</a>
-</div>
-
 
 <div class="next">
-<a href="/2017/06/13/tigervnc-xfce4桌面安装/"  title="tigervnc+xfce4桌面安装">
+<a href="/2017/06/24/v4l2配合SDL2显示摄像头视频/"  title="v4l2配合SDL2显示摄像头视频">
  <strong>下一篇：</strong><br/> 
- <span>tigervnc+xfce4桌面安装
+ <span>v4l2配合SDL2显示摄像头视频
 </span>
 </a>
 </div>
@@ -176,7 +164,7 @@
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#引言"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#改进"><span class="toc-number">2.</span> <span class="toc-text">改进</span></a></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#引言"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#代码"><span class="toc-number">2.</span> <span class="toc-text">代码</span></a></li></ol>
  
   </div>
 
@@ -202,23 +190,7 @@
 		<ul class="clearfix">
 		
 			
-				<li><a href="/tags/c语言/" title="c语言">c语言<sup>5</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/linux/" title="linux">linux<sup>3</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/gdb/" title="gdb">gdb<sup>2</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/反汇编/" title="反汇编">反汇编<sup>2</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/DevOps/" title="DevOps">DevOps<sup>2</sup></a></li>
+				<li><a href="/tags/c语言/" title="c语言">c语言<sup>3</sup></a></li>
 			
 		
 			
@@ -226,11 +198,15 @@
 			
 		
 			
-				<li><a href="/tags/缓冲区溢出/" title="缓冲区溢出">缓冲区溢出<sup>1</sup></a></li>
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/SDL2/" title="SDL2">SDL2<sup>1</sup></a></li>
+				<li><a href="/tags/反汇编/" title="反汇编">反汇编<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/gdb/" title="gdb">gdb<sup>2</sup></a></li>
 			
 		
 			
@@ -238,23 +214,11 @@
 			
 		
 			
-				<li><a href="/tags/数据挖掘/" title="数据挖掘">数据挖掘<sup>1</sup></a></li>
+				<li><a href="/tags/配置/" title="配置">配置<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/总结/" title="总结">总结<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/CI/" title="CI">CI<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/算法/" title="算法">算法<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Docker/" title="Docker">Docker<sup>1</sup></a></li>
+				<li><a href="/tags/SDL2/" title="SDL2">SDL2<sup>1</sup></a></li>
 			
 		
 			
@@ -262,23 +226,23 @@
 			
 		
 			
-				<li><a href="/tags/v8/" title="v8">v8<sup>1</sup></a></li>
+				<li><a href="/tags/数据挖掘/" title="数据挖掘">数据挖掘<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/编译/" title="编译">编译<sup>1</sup></a></li>
+				<li><a href="/tags/缓冲区溢出/" title="缓冲区溢出">缓冲区溢出<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/chrome/" title="chrome">chrome<sup>1</sup></a></li>
+				<li><a href="/tags/js/" title="js">js<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/hello-world/" title="hello world">hello world<sup>1</sup></a></li>
+				<li><a href="/tags/日历/" title="日历">日历<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/javascript/" title="javascript">javascript<sup>1</sup></a></li>
+				<li><a href="/tags/rabbitzbx/" title="rabbitzbx">rabbitzbx<sup>1</sup></a></li>
 			
 		
 		</ul>

@@ -12,14 +12,14 @@
 
     
     <meta name="description" content="引子之前一直在用实验室延续下来的C++框架，因为没有测试用例以及足够的文档，开发起来苦不堪言（可能是我太弱鸡），当然这也不能怪之前的师兄，从无到有的过程本身就是一个飞跃。 从痛苦中反思，一定要有一个相对规范的流程，把软件开发这个流程自动化、正规化。正好有个新项目，老板让我负责整体的方案设计以及开发实现。开发团队很小，也就三四个人，足够“敏捷”。磨刀不误砍柴工，不急着上来就编码，我坚持先把流程定好，">
-<meta name="keywords" content="Docker,CI， DevOps">
+<meta name="keywords" content="Docker,CI,DevOps">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Jenkins配合Docker搭建CI服务">
 <meta property="og:url" content="https://chendotjs.me/2017/11/23/Jenkins配合Docker搭建CI服务/index.html">
 <meta property="og:site_name" content="修竹幽晴堂">
 <meta property="og:description" content="引子之前一直在用实验室延续下来的C++框架，因为没有测试用例以及足够的文档，开发起来苦不堪言（可能是我太弱鸡），当然这也不能怪之前的师兄，从无到有的过程本身就是一个飞跃。 从痛苦中反思，一定要有一个相对规范的流程，把软件开发这个流程自动化、正规化。正好有个新项目，老板让我负责整体的方案设计以及开发实现。开发团队很小，也就三四个人，足够“敏捷”。磨刀不误砍柴工，不急着上来就编码，我坚持先把流程定好，">
 <meta property="og:image" content="https://chendotjs.me/2017/11/23/Jenkins配合Docker搭建CI服务/jenkins-docker.png">
-<meta property="og:updated_time" content="2017-11-23T15:22:20.880Z">
+<meta property="og:updated_time" content="2017-11-27T06:49:50.755Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Jenkins配合Docker搭建CI服务">
 <meta name="twitter:description" content="引子之前一直在用实验室延续下来的C++框架，因为没有测试用例以及足够的文档，开发起来苦不堪言（可能是我太弱鸡），当然这也不能怪之前的师兄，从无到有的过程本身就是一个飞跃。 从痛苦中反思，一定要有一个相对规范的流程，把软件开发这个流程自动化、正规化。正好有个新项目，老板让我负责整体的方案设计以及开发实现。开发团队很小，也就三四个人，足够“敏捷”。磨刀不误砍柴工，不急着上来就编码，我坚持先把流程定好，">
@@ -102,7 +102,7 @@
 		<div id="toc" class="toc-article">
 			<strong class="toc-title">Contents</strong>
 		
-			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#引子"><span class="toc-number">1.</span> <span class="toc-text">引子</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#持续集成（CI）服务"><span class="toc-number">2.</span> <span class="toc-text">持续集成（CI）服务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Jenkins"><span class="toc-number">3.</span> <span class="toc-text">Jenkins</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#0x01-简介"><span class="toc-number">3.1.</span> <span class="toc-text">0x01 简介</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x02-安装"><span class="toc-number">3.2.</span> <span class="toc-text">0x02 安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x03-简单使用"><span class="toc-number">3.3.</span> <span class="toc-text">0x03 简单使用</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-源码管理"><span class="toc-number">3.3.0.1.</span> <span class="toc-text">1.源码管理</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-构建触发器"><span class="toc-number">3.3.0.2.</span> <span class="toc-text">2.构建触发器</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-构建环境"><span class="toc-number">3.3.0.3.</span> <span class="toc-text">3.构建环境</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-构建"><span class="toc-number">3.3.0.4.</span> <span class="toc-text">4.构建</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x04-Jenkins的不足"><span class="toc-number">3.4.</span> <span class="toc-text">0x04 Jenkins的不足</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Docker"><span class="toc-number">4.</span> <span class="toc-text">Docker</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-简介-安装-入门"><span class="toc-number">5.</span> <span class="toc-text">0x01 简介 安装 入门</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-实践"><span class="toc-number">6.</span> <span class="toc-text">0x02 实践</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考"><span class="toc-number">7.</span> <span class="toc-text">参考</span></a></li></ol>
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#引子"><span class="toc-number">1.</span> <span class="toc-text">引子</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#持续集成（CI）服务"><span class="toc-number">2.</span> <span class="toc-text">持续集成（CI）服务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Jenkins"><span class="toc-number">3.</span> <span class="toc-text">Jenkins</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#0x01-简介"><span class="toc-number">3.1.</span> <span class="toc-text">0x01 简介</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x02-安装"><span class="toc-number">3.2.</span> <span class="toc-text">0x02 安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x03-简单使用"><span class="toc-number">3.3.</span> <span class="toc-text">0x03 简单使用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x04-Jenkins的不足"><span class="toc-number">3.4.</span> <span class="toc-text">0x04 Jenkins的不足</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Docker"><span class="toc-number">4.</span> <span class="toc-text">Docker</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#0x01-简介-安装-入门"><span class="toc-number">4.1.</span> <span class="toc-text">0x01 简介 安装 入门</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x02-实践"><span class="toc-number">4.2.</span> <span class="toc-text">0x02 实践</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考"><span class="toc-number">5.</span> <span class="toc-text">参考</span></a></li></ol>
 		
 		</div>
 		
@@ -119,7 +119,8 @@
 <p>目前我们采用的是<code>Jenkins 2.73.3 LTS</code>版本，使用<code>Java8</code>作为运行环境。</p>
 <h3 id="0x03-简单使用"><a href="#0x03-简单使用" class="headerlink" title="0x03 简单使用"></a>0x03 简单使用</h3><p>在新建一个项目之后，一般选择 <strong> 构建一个自由风格的软件项目 </strong> 。</p>
 <p><strong> 有几个关键栏目需要说明一下： </strong></p>
-<h5 id="1-源码管理"><a href="#1-源码管理" class="headerlink" title="1.源码管理"></a>1.源码管理</h5><p>通过输入项目的URL地址可以导入项目，我们一般使用git进行版本管理。<code>Jenkins</code>需要访问代码仓库的权限，并且提供了如下方法获取权限：</p>
+<p><strong> 1.源码管理 </strong></p>
+<p>通过输入项目的URL地址可以导入项目，我们一般使用git进行版本管理。<code>Jenkins</code>需要访问代码仓库的权限，并且提供了如下方法获取权限：</p>
 <ul>
 <li>Username with password</li>
 <li>Docker Host Certificate Authentication</li>
@@ -129,10 +130,13 @@
 <li>Certificate</li>
 </ul>
 <p>由于我们的gogs只支持基于http的git协议，所以一般直接使用 <strong> Username with password </strong> 方式访问仓库源代码。</p>
-<h5 id="2-构建触发器"><a href="#2-构建触发器" class="headerlink" title="2.构建触发器"></a>2.构建触发器</h5><p>该选项决定了何时来构建我们的项目。我们一般使用 <strong> 触发远程构建 (例如,使用脚本) </strong> ，通过git的<code>post-commit hook</code>或者gogs提供的<code>webhook</code>通知Jenkins立即构建，具体的命令类似这样 <code>curl --user USERNAME:PASS -s http://JENKINS_URL/job/PROJECTNAME/build?token=TOKEN_NAME</code>。</p>
+<p><strong> 2.构建触发器 </strong></p>
+<p>该选项决定了何时来构建我们的项目。我们一般使用 <strong> 触发远程构建 (例如,使用脚本) </strong> ，通过git的<code>post-commit hook</code>或者gogs提供的<code>webhook</code>通知Jenkins立即构建，具体的命令类似这样 <code>curl --user USERNAME:PASS -s http://JENKINS_URL/job/PROJECTNAME/build?token=TOKEN_NAME</code>。</p>
 <p>另一种方式也可以选择 <strong> Build periodically </strong> ，但是显然没有提交代码后进行构建来得灵活直观。</p>
-<h5 id="3-构建环境"><a href="#3-构建环境" class="headerlink" title="3.构建环境"></a>3.构建环境</h5><p>建议勾选 <strong> Delete workspace before build starts </strong> ，以便让Jenkins可以彻底重新构建项目。</p>
-<h5 id="4-构建"><a href="#4-构建" class="headerlink" title="4.构建"></a>4.构建</h5><p>最重要的一步，决定了如何构建项目。根据需求，我们一般选择 <strong> Execute shell </strong> 。构建的脚本可以是Makefile或者shell脚本甚至是python脚本，只要保证shell最后的返回值为0，Jenkins就认为成功构建。</p>
+<p><strong> 3.构建环境 </strong></p>
+<p>建议勾选 <strong> Delete workspace before build starts </strong> ，以便让Jenkins可以彻底重新构建项目。</p>
+<p><strong> 4.构建 </strong></p>
+<p>最重要的一步，决定了如何构建项目。根据需求，我们一般选择 <strong> Execute shell </strong> 。构建的脚本可以是Makefile或者shell脚本甚至是python脚本，只要保证shell最后的返回值为0，Jenkins就认为成功构建。</p>
 <h3 id="0x04-Jenkins的不足"><a href="#0x04-Jenkins的不足" class="headerlink" title="0x04 Jenkins的不足"></a>0x04 Jenkins的不足</h3><p>上节介绍了Jenkins的简单使用，看起来简单易用，但是有很多缺陷。所有的构建操作都是以宿主机为上下文环境，无法应对更灵活的需求，比如：</p>
 <ul>
 <li>c++项目如何确保在clang、gcc-7、gcc-5等编译器下都能编译通过</li>
@@ -140,8 +144,8 @@
 <li>如何在数据库中mock数据</li>
 </ul>
 <p>诚然可以通过安装多种工具链以及修改构建脚本来满足以上需求，但无疑会大大增加脚本编写的复杂度以及测试的难度。所以需要配合<code>docker</code>的虚拟化技术来为Jenkins增加灵活性。</p>
-<h2 id="Docker"><a href="#Docker" class="headerlink" title="Docker"></a>Docker</h2><h2 id="0x01-简介-安装-入门"><a href="#0x01-简介-安装-入门" class="headerlink" title="0x01 简介 安装 入门"></a>0x01 简介 安装 入门</h2><p>《<a href="https://yeasy.gitbooks.io/docker_practice/content/" target="_blank" rel="external">Docker — 从入门到实践</a> 》一文已经写得很详尽透彻。</p>
-<h2 id="0x02-实践"><a href="#0x02-实践" class="headerlink" title="0x02 实践"></a>0x02 实践</h2><p>docker讲究分层。目前我的做法比较简单，自底向上总共分为三层:</p>
+<h2 id="Docker"><a href="#Docker" class="headerlink" title="Docker"></a>Docker</h2><h3 id="0x01-简介-安装-入门"><a href="#0x01-简介-安装-入门" class="headerlink" title="0x01 简介 安装 入门"></a>0x01 简介 安装 入门</h3><p>《<a href="https://yeasy.gitbooks.io/docker_practice/content/" target="_blank" rel="external">Docker — 从入门到实践</a> 》一文已经写得很详尽透彻。</p>
+<h3 id="0x02-实践"><a href="#0x02-实践" class="headerlink" title="0x02 实践"></a>0x02 实践</h3><p>docker讲究分层。目前我的做法比较简单，自底向上总共分为三层:</p>
 <table>
 <thead>
 <tr>
@@ -179,7 +183,7 @@
 
   <div class="article-tags">
   
-  <span></span> <a href="/tags/Docker/">Docker</a><a href="/tags/CI，-DevOps/">CI， DevOps</a>
+  <span></span> <a href="/tags/Docker/">Docker</a><a href="/tags/CI/">CI</a><a href="/tags/DevOps/">DevOps</a>
   </div>
 
 </div>
@@ -226,7 +230,7 @@
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#引子"><span class="toc-number">1.</span> <span class="toc-text">引子</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#持续集成（CI）服务"><span class="toc-number">2.</span> <span class="toc-text">持续集成（CI）服务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Jenkins"><span class="toc-number">3.</span> <span class="toc-text">Jenkins</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#0x01-简介"><span class="toc-number">3.1.</span> <span class="toc-text">0x01 简介</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x02-安装"><span class="toc-number">3.2.</span> <span class="toc-text">0x02 安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x03-简单使用"><span class="toc-number">3.3.</span> <span class="toc-text">0x03 简单使用</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-源码管理"><span class="toc-number">3.3.0.1.</span> <span class="toc-text">1.源码管理</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-构建触发器"><span class="toc-number">3.3.0.2.</span> <span class="toc-text">2.构建触发器</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-构建环境"><span class="toc-number">3.3.0.3.</span> <span class="toc-text">3.构建环境</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-构建"><span class="toc-number">3.3.0.4.</span> <span class="toc-text">4.构建</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x04-Jenkins的不足"><span class="toc-number">3.4.</span> <span class="toc-text">0x04 Jenkins的不足</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Docker"><span class="toc-number">4.</span> <span class="toc-text">Docker</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-简介-安装-入门"><span class="toc-number">5.</span> <span class="toc-text">0x01 简介 安装 入门</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-实践"><span class="toc-number">6.</span> <span class="toc-text">0x02 实践</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考"><span class="toc-number">7.</span> <span class="toc-text">参考</span></a></li></ol>
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#引子"><span class="toc-number">1.</span> <span class="toc-text">引子</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#持续集成（CI）服务"><span class="toc-number">2.</span> <span class="toc-text">持续集成（CI）服务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Jenkins"><span class="toc-number">3.</span> <span class="toc-text">Jenkins</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#0x01-简介"><span class="toc-number">3.1.</span> <span class="toc-text">0x01 简介</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x02-安装"><span class="toc-number">3.2.</span> <span class="toc-text">0x02 安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x03-简单使用"><span class="toc-number">3.3.</span> <span class="toc-text">0x03 简单使用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x04-Jenkins的不足"><span class="toc-number">3.4.</span> <span class="toc-text">0x04 Jenkins的不足</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Docker"><span class="toc-number">4.</span> <span class="toc-text">Docker</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#0x01-简介-安装-入门"><span class="toc-number">4.1.</span> <span class="toc-text">0x01 简介 安装 入门</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x02-实践"><span class="toc-number">4.2.</span> <span class="toc-text">0x02 实践</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考"><span class="toc-number">5.</span> <span class="toc-text">参考</span></a></li></ol>
  
   </div>
 
@@ -260,7 +264,7 @@
 			
 		
 			
-				<li><a href="/tags/汇编/" title="汇编">汇编<sup>2</sup></a></li>
+				<li><a href="/tags/gdb/" title="gdb">gdb<sup>2</sup></a></li>
 			
 		
 			
@@ -268,7 +272,15 @@
 			
 		
 			
-				<li><a href="/tags/gdb/" title="gdb">gdb<sup>2</sup></a></li>
+				<li><a href="/tags/DevOps/" title="DevOps">DevOps<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/汇编/" title="汇编">汇编<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/缓冲区溢出/" title="缓冲区溢出">缓冲区溢出<sup>1</sup></a></li>
 			
 		
 			
@@ -280,15 +292,19 @@
 			
 		
 			
-				<li><a href="/tags/CI，-DevOps/" title="CI， DevOps">CI， DevOps<sup>1</sup></a></li>
+				<li><a href="/tags/数据挖掘/" title="数据挖掘">数据挖掘<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/配置/" title="配置">配置<sup>1</sup></a></li>
+				<li><a href="/tags/总结/" title="总结">总结<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/v4l2/" title="v4l2">v4l2<sup>1</sup></a></li>
+				<li><a href="/tags/CI/" title="CI">CI<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/算法/" title="算法">算法<sup>1</sup></a></li>
 			
 		
 			
@@ -296,7 +312,7 @@
 			
 		
 			
-				<li><a href="/tags/总结/" title="总结">总结<sup>1</sup></a></li>
+				<li><a href="/tags/v4l2/" title="v4l2">v4l2<sup>1</sup></a></li>
 			
 		
 			
@@ -317,18 +333,6 @@
 		
 			
 				<li><a href="/tags/javascript/" title="javascript">javascript<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/算法/" title="算法">算法<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/缓冲区溢出/" title="缓冲区溢出">缓冲区溢出<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/数据挖掘/" title="数据挖掘">数据挖掘<sup>1</sup></a></li>
 			
 		
 		</ul>
