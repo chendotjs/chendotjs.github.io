@@ -84,6 +84,10 @@ name = "Github"
 icon = "github"
 url = "https://github.com/chendotjs"
 
+[[params.social]]
+name = "Location"
+icon = "map-pin"
+url = "https://goo.gl/maps/Ma3vNv3W4RyzBPWo6"
 
 # Enable tags.
 [taxonomies]
